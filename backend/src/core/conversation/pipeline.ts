@@ -1072,9 +1072,20 @@ const computeUnresolvedFacets = (
   });
 };
 
-const buildPlainConversationTurn = async (messages: ConversationMessage[], brandProfile?: any, mode: 'rapport' | 'info' = 'info'): Promise<ChatTurn> => {
-  const brandTone = typeof brandProfile?.tone === 'string' ? brandProfile.tone : 'warm, helpful concierge';
-  const systemPrompt = `You are a friendly retail concierge. Answer conversationally with at least three sentences that explain the topic, include practical context or tips, and close by inviting the shopper to keep chatting. Tone: ${brandTone}.`;
+const buildPlainConversationTurn = async (messages: ConversationMessage[], brandProfile?: any, storeCard?: any, mode: 'rapport' | 'info' = 'info'): Promise<ChatTurn> => {
+  // Use Store Card for brand voice if available
+  let brandTone = 'warm, helpful concierge';
+  let storeContext = '';
+  
+  if (storeCard) {
+    brandTone = `${storeCard.brand_voice.personality} (${storeCard.brand_voice.tone}, ${storeCard.brand_voice.formality})`;
+    const { formatStoreCardForContext } = await import('../store-intelligence');
+    storeContext = `\n\nStore Context: ${formatStoreCardForContext(storeCard)}`;
+  } else if (typeof brandProfile?.tone === 'string') {
+    brandTone = brandProfile.tone;
+  }
+  
+  const systemPrompt = `You are a friendly retail concierge. Answer conversationally with at least three sentences that explain the topic, include practical context or tips, and close by inviting the shopper to keep chatting. Tone: ${brandTone}.${storeContext}`;
 
   const lastUserMessage = [...messages].reverse().find((message) => message.role === 'user')?.content?.trim() ?? '';
 
@@ -1146,11 +1157,22 @@ const buildPlainConversationTurn = async (messages: ConversationMessage[], brand
   };
 };
 export const runConversationPipeline = async (
-  deps: ConversationPipelineDependencies,
-  input: ConversationPipelineInput
+  input: ConversationPipelineInput,
+  deps: ConversationPipelineDependencies
 ): Promise<ConversationPipelineResult> => {
   const { shopId, sessionId, messages, sessionMetadata, brandProfile, resultLimit = 17 } = input;
   const userMessage = messages[messages.length - 1];
+
+  // Fetch Store Card for brand-aware responses
+  let storeCard: any = null;
+  try {
+    const { fetchStoreCard } = await import('../store-intelligence');
+    storeCard = await fetchStoreCard(shopId);
+    console.log(`Store Card loaded for ${shopId}:`, storeCard.store_name);
+  } catch (error) {
+    console.warn(`Failed to fetch Store Card for ${shopId}:`, error);
+    // Continue without Store Card (graceful degradation)
+  }
 
   if (!userMessage || userMessage.role !== 'user') {
     throw new Error('Conversation pipeline requires a trailing user message');
@@ -1692,7 +1714,7 @@ export const runConversationPipeline = async (
     };
   }
   if (rapportMode && !infoMode) {
-    const plainTurn = await buildPlainConversationTurn(messages, brandProfile, 'rapport');
+    const plainTurn = await buildPlainConversationTurn(messages, brandProfile, storeCard, 'rapport');
     const rapportRetrieval: RetrievalSet = {
       products: [],
       facets: new Map(),
@@ -1781,7 +1803,7 @@ export const runConversationPipeline = async (
       && !hasShoppingWords;  // If has shopping words, don't fall back to info!
 
     if (looksLikeInfoRequest) {
-      const plainTurn = await buildPlainConversationTurn(messages, brandProfile, 'info');
+      const plainTurn = await buildPlainConversationTurn(messages, brandProfile, storeCard, 'info');
       const infoRetrieval: RetrievalSet = { products: [], facets: new Map() };
       const infoSummary = summariseDialogue(sessionMetadata.dialogueSummary, userMessage.content, plainTurn);
 
@@ -2089,7 +2111,7 @@ export const runConversationPipeline = async (
       }
 
       if (turnMode === 'chat') {
-        const plainTurn = await buildPlainConversationTurn(messages, brandProfile, rapportMode ? 'rapport' : 'info');
+        const plainTurn = await buildPlainConversationTurn(messages, brandProfile, storeCard, rapportMode ? 'rapport' : 'info');
         const infoSummary = summariseDialogue(sessionMetadata.dialogueSummary, userMessage.content, plainTurn);
 
         return {
