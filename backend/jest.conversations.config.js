@@ -17,4 +17,5 @@ module.exports = {
   testTimeout: 60000, // 60s for API calls
   verbose: true,
   collectCoverage: false, // Don't need coverage for conversation tests
+  maxWorkers: 1, // Run tests sequentially to avoid Gemini rate limits
 };
