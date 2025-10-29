@@ -1,5 +1,5 @@
 /** @type {import('jest').Config} */
-module.exports = {
+export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/tests'],
@@ -17,4 +17,10 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
   verbose: true,
   testTimeout: 30000, // 30 seconds for LLM calls
+  extensionsToTreatAsEsm: ['.ts'],
+  transform: {
+    '^.+\\.ts$': ['ts-jest', {
+      useESM: true,
+    }],
+  },
 };

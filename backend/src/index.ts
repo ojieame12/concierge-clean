@@ -3,6 +3,7 @@ import { createCorsMiddleware } from './middleware/cors';
 import { config } from './config';
 import { requireClientKey } from './middleware/require-client-key';
 import { chatRouter } from './routes/chat';
+import chatNaturalRouter from './routes/chat-natural';
 import themeRouter from './routes/theme';
 import { eventsRouter } from './routes/events';
 
@@ -20,6 +21,7 @@ app.get('/healthz', (_req, res) => {
 
 // API routes
 app.use('/api/chat', requireClientKey, chatRouter);
+app.use('/api/chat-natural', requireClientKey, chatNaturalRouter);
 app.use('/api/events', requireClientKey, eventsRouter);
 app.use('/theme', themeRouter);
 
@@ -36,6 +38,7 @@ app.listen(PORT, () => {
   console.log(`✅ Insite B2B API running on port ${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/healthz`);
   console.log(`   Chat: http://localhost:${PORT}/api/chat`);
+  console.log(`   Chat (Natural): http://localhost:${PORT}/api/chat-natural`);
 });
 
 export default app;
