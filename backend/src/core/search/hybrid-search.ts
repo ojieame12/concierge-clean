@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import type { Product, ProductVariant } from '../conversation/types';
 import { bucketizePrice, type RetrievalSet } from '../conversation/conversation-policy';
+import { rerankProducts } from '../ranking/reranker';
+import { DEFAULT_WEIGHTS } from '../ranking/config';
 
 const STOP_WORDS = new Set([
   'the', 'and', 'for', 'from', 'with', 'this', 'that', 'have', 'your', 'about', 'there', 'what', 'when',
@@ -220,8 +222,19 @@ export const runHybridSearch = async (
     variants: variantsByProduct.get(product.id) ?? product.variants ?? [],
   }));
 
+  // Apply multi-factor re-ranking for better relevance
+  const rerankedProducts = rerankProducts(enrichedProducts, {
+    query: lexicalQuery,
+    constraints: activeFilters,
+    weights: DEFAULT_WEIGHTS,
+    priceRange: priceRange.min !== null || priceRange.max !== null ? {
+      min: priceRange.min ?? undefined,
+      max: priceRange.max ?? undefined
+    } : undefined
+  });
+
   return {
-    products: enrichedProducts,
-    facets: buildFacetMap(enrichedProducts),
+    products: rerankedProducts,
+    facets: buildFacetMap(rerankedProducts),
   };
 };
