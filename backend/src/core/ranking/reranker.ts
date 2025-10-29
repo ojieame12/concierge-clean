@@ -45,12 +45,15 @@ const scoreProduct = (product: any, context: RankingContext): ScoredProduct => {
   const weights = getWeightsForCategory(product.category_path, context.weights);
   
   // Calculate individual scores
+  // Use vendor or brand field (fallback for different data models)
+  const vendorOrBrand = product.vendor ?? product.brand ?? null;
+  
   const breakdown = {
     semantic: weights.semanticSimilarity * calculateSemanticScore(product),
     facet: weights.facetMatch * calculateFacetMatch(product, context.constraints),
     review: weights.reviewQuality * calculateReviewScore(product),
     price: weights.priceFit * calculatePriceFit(product.price, context.priceRange),
-    brand: weights.brandPriority * calculateBrandScore(product.vendor, context.priorityBrands)
+    brand: weights.brandPriority * calculateBrandScore(vendorOrBrand, context.priorityBrands)
   };
   
   // Total score
@@ -180,7 +183,38 @@ const calculatePriceFit = (
     return 0.5; // Neutral if no price preference
   }
   
-  const { min = 0, max = Infinity } = priceRange;
+  const hasMin = typeof priceRange.min === 'number';
+  const hasMax = typeof priceRange.max === 'number';
+  
+  // Handle min-only case (e.g., "at least $100")
+  if (hasMin && !hasMax) {
+    const min = priceRange.min as number;
+    if (price < min) {
+      // Penalize items below minimum
+      const penalty = (min - price) / min;
+      return Math.max(0, 1 - penalty);
+    }
+    // Score from 0.7 at min to 1.0 at +25% over min, then taper to 0.8
+    const t = Math.max(0, Math.min(1, (price - min) / (min * 0.25)));
+    return 0.7 + 0.3 * t; // 0.7..1.0
+  }
+  
+  // Handle max-only case (e.g., "under $500")
+  if (!hasMin && hasMax) {
+    const max = priceRange.max as number;
+    if (price > max) {
+      // Penalize items above maximum
+      const penalty = (price - max) / max;
+      return Math.max(0, 1 - penalty);
+    }
+    // Prefer prices a bit below max (sweet spot at 75% of max)
+    const t = Math.max(0, Math.min(1, (max - price) / (max * 0.25)));
+    return 0.7 + 0.3 * t; // 0.7..1.0
+  }
+  
+  // Handle both bounds present
+  const min = priceRange.min as number;
+  const max = priceRange.max as number;
   
   // If out of range, penalize based on distance
   if (price < min || price > max) {
