@@ -11,8 +11,8 @@
  * Expected: Clarify needs, suggest ParkPop 148 ($329) + optional upsell
  */
 
-import { startSession, send, extractProducts, extractClarifiers } from '../utils/convoHarness';
-import { lintPersona } from '../utils/personaLinter';
+import { startSession, send } from '../utils/convoHarness';
+import { personaChecks } from '../utils/personaLinter';
 import { judgeNaturalness, judgeRecommendations, judgeClarification } from '../utils/judges';
 
 describe('CONV-SNOW-02: Dead-End Budget Scenario', () => {
@@ -21,7 +21,7 @@ describe('CONV-SNOW-02: Dead-End Budget Scenario', () => {
   beforeAll(async () => {
     session = await startSession({
       persona: 'friendly_expert',
-      shop_domain: 'snow.local'
+      shopDomain: 'snow.local'
     });
   });
 
@@ -30,10 +30,10 @@ describe('CONV-SNOW-02: Dead-End Budget Scenario', () => {
     const response1 = await send(session, "I need a 4K snowboard for under $250");
 
     // Should acknowledge the request
-    expect(response1.text.toLowerCase()).toContain('board' || 'snowboard');
+    expect(response1.text.toLowerCase()).toMatch(/board|snowboard/);
 
     // Should ask clarifying questions (not immediately say "no")
-    const clarifiers = extractClarifiers(response1);
+    const clarifiers = response1.clarifiers;
     expect(clarifiers.length).toBeGreaterThanOrEqual(1);
 
     // Should ask about priorities or use case
@@ -47,11 +47,11 @@ describe('CONV-SNOW-02: Dead-End Budget Scenario', () => {
     expect(asksPriority).toBe(true);
 
     // Should NOT be dismissive or robotic
-    const lintResults = lintPersona(response1.text);
-    expect(lintResults.violations.filter(v => v.type === 'robotic_phrase')).toHaveLength(0);
+    const lintResults = personaChecks(response1.text);
+    expect(lintResults.violations.filter((v: string) => v.includes('robotic'))).toHaveLength(0);
     
     // Should use contractions
-    expect(lintResults.violations.filter(v => v.type === 'no_contractions')).toHaveLength(0);
+    expect(lintResults.violations.filter((v: string) => v.includes('contraction'))).toHaveLength(0);
   });
 
   it('should offer nearest match with honest budget discussion', async () => {
@@ -59,12 +59,12 @@ describe('CONV-SNOW-02: Dead-End Budget Scenario', () => {
     const response2 = await send(session, "I'm a beginner, just want something forgiving for learning");
 
     // Should offer products
-    const products = extractProducts(response2);
+    const products = response2.shortlist;
     expect(products.length).toBeGreaterThanOrEqual(1);
     expect(products.length).toBeLessThanOrEqual(3);
 
     // Should include nearest match (ParkPop 148 at $329 or Snowline Nova at $389)
-    const hasAffordableOption = products.some(p => 
+    const hasAffordableOption = products.some((p: any) => 
       p.price && p.price >= 300 && p.price <= 400
     );
     expect(hasAffordableOption).toBe(true);
@@ -92,7 +92,7 @@ describe('CONV-SNOW-02: Dead-End Budget Scenario', () => {
   it('should provide tasteful upsell with clear advantages', async () => {
     const response2 = await send(session, "I'm a beginner, just want something forgiving for learning");
 
-    const products = extractProducts(response2);
+    const products = response2.shortlist;
 
     // If offering multiple products, should explain tradeoffs
     if (products.length >= 2) {
@@ -130,18 +130,18 @@ describe('CONV-SNOW-02: Dead-End Budget Scenario', () => {
 
   it('should maintain empathetic tone throughout', async () => {
     // Check all responses for empathy
-    const allResponses = session.history
-      .filter((h: any) => h.role === 'assistant')
-      .map((h: any) => h.content);
+    const allResponses = session.messages
+      .filter((m: any) => m.role === 'assistant')
+      .map((m: any) => m.content);
 
     for (const response of allResponses) {
-      const lintResults = lintPersona(response);
+      const lintResults = personaChecks(response);
       
       // Should use contractions (natural, friendly)
-      expect(lintResults.violations.filter(v => v.type === 'no_contractions')).toHaveLength(0);
+      expect(lintResults.violations.filter((v: string) => v.includes('contraction'))).toHaveLength(0);
       
       // Should have sentence variety
-      expect(lintResults.violations.filter(v => v.type === 'monotonous_sentences')).toHaveLength(0);
+      expect(lintResults.violations.filter((v: string) => v.includes('monotonous'))).toHaveLength(0);
       
       // Should not be overly enthusiastic
       const exclamationCount = (response.match(/!/g) || []).length;
@@ -150,56 +150,64 @@ describe('CONV-SNOW-02: Dead-End Budget Scenario', () => {
   });
 
   it('should score well on clarification quality', async () => {
-    const conversation = session.history.map((h: any) => ({
-      role: h.role,
-      content: h.content
+    const conversation = session.messages.map((m: any) => ({
+      role: m.role,
+      content: m.content
     }));
 
-    const score = await judgeClarification(conversation);
+    // Get first assistant message (should have clarification)
+    const firstAssistant = conversation.filter((m: any) => m.role === 'assistant')[0];
+    const score = await judgeClarification(firstAssistant?.content || '', 1);
     
     // Should score at least 4.0 on clarification
     expect(score.score).toBeGreaterThanOrEqual(4.0);
     
     console.log('Clarification Score:', score.score);
-    console.log('Reasoning:', score.reasoning);
+    console.log('Reasons:', score.reasons);
   });
 
   it('should score well on naturalness', async () => {
-    const conversation = session.history.map((h: any) => ({
-      role: h.role,
-      content: h.content
+    const conversation = session.messages.map((m: any) => ({
+      role: m.role,
+      content: m.content
     }));
 
-    const score = await judgeNaturalness(conversation);
+    // Get last assistant message
+    const lastAssistant = conversation.filter((m: any) => m.role === 'assistant').pop();
+    const score = await judgeNaturalness(lastAssistant?.content || '');
     
     // Should score at least 4.0 on naturalness
     expect(score.score).toBeGreaterThanOrEqual(4.0);
     
     console.log('Naturalness Score:', score.score);
-    console.log('Reasoning:', score.reasoning);
+    console.log('Reasons:', score.reasons);
   });
 
   it('should score well on recommendations despite budget constraint', async () => {
-    const conversation = session.history.map((h: any) => ({
-      role: h.role,
-      content: h.content
+    const conversation = session.messages.map((m: any) => ({
+      role: m.role,
+      content: m.content
     }));
 
-    const score = await judgeRecommendations(conversation);
+    // Get last response with products
+    const lastAssistant = conversation.filter((m: any) => m.role === 'assistant').pop();
+    const products = session.messages[session.messages.length - 1]?.shortlist || [];
+    
+    const score = await judgeRecommendations(lastAssistant?.content || '', products);
     
     // Should score at least 4.0 on recommendations
     expect(score.score).toBeGreaterThanOrEqual(4.0);
     
     console.log('Recommendations Score:', score.score);
-    console.log('Reasoning:', score.reasoning);
+    console.log('Reasons:', score.reasons);
   });
 
   afterAll(() => {
     // Log full conversation for review
     console.log('\n=== Full Conversation ===');
-    session.history.forEach((h: any, i: number) => {
-      console.log(`\n[${i + 1}] ${h.role.toUpperCase()}:`);
-      console.log(h.content);
+    session.messages.forEach((m: any, i: number) => {
+      console.log(`\n[${i + 1}] ${m.role.toUpperCase()}:`);
+      console.log(m.content);
     });
   });
 });

@@ -5,7 +5,11 @@
  * Provides a simple API for simulating conversations and extracting results.
  */
 
-import type { Segment } from '@insite/shared-types';
+// Segment type definition
+export interface Segment {
+  type: string;
+  [key: string]: any;
+}
 
 export interface ConversationSession {
   id: string;
@@ -42,7 +46,7 @@ export interface QuickReplyOption {
 }
 
 const API_URL = process.env.CHAT_API_URL || 'http://localhost:4000/api/chat-natural';
-const CLIENT_KEY = process.env.CLIENT_KEY || 'dev-client-key-123';
+const CLIENT_KEY = process.env.CLIENT_KEY || process.env.CLIENT_API_KEYS?.split(',')[0] || 'dev-client-key-123';
 
 /**
  * Start a new conversation session

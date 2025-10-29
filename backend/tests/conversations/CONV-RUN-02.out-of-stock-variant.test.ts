@@ -11,8 +11,8 @@
  * Expected: Offer Grey Size 10 variant + notify + upsell
  */
 
-import { startSession, send, extractProducts, extractClarifiers } from '../utils/convoHarness';
-import { lintPersona } from '../utils/personaLinter';
+import { startSession, send } from '../utils/convoHarness';
+import { personaChecks } from '../utils/personaLinter';
 import { judgeNaturalness, judgeRecommendations } from '../utils/judges';
 
 describe('CONV-RUN-02: Out-of-Stock Variant Recovery', () => {
@@ -21,7 +21,7 @@ describe('CONV-RUN-02: Out-of-Stock Variant Recovery', () => {
   beforeAll(async () => {
     session = await startSession({
       persona: 'friendly_expert',
-      shop_domain: 'run.local'
+      shopDomain: 'run.local'
     });
   });
 
@@ -42,22 +42,22 @@ describe('CONV-RUN-02: Out-of-Stock Variant Recovery', () => {
     expect(hasStockMention).toBe(true);
 
     // Should NOT use robotic phrases
-    const lintResults = lintPersona(response1.text);
-    expect(lintResults.violations.filter(v => v.type === 'robotic_phrase')).toHaveLength(0);
+    const lintResults = personaChecks(response1.text);
+    expect(lintResults.violations.filter((v: string) => v.includes('robotic'))).toHaveLength(0);
 
     // Should offer alternatives
-    const products = extractProducts(response1);
+    const products = response1.shortlist;
     expect(products.length).toBeGreaterThanOrEqual(1);
     expect(products.length).toBeLessThanOrEqual(3);
 
     // Should include:
     // 1. Same model in different variant (Grey Size 10)
     // 2. OR a tasteful upsell with clear reasoning
-    const hasMarathonMaxVariant = products.some(p => 
-      p.title.toLowerCase().includes('marathonmax')
+    const hasMarathonMaxVariant = products.some((p: any) => 
+      p.title?.toLowerCase().includes('marathonmax')
     );
     
-    const hasUpsell = products.some(p => 
+    const hasUpsell = products.some((p: any) => 
       p.price && p.price > 140 && p.price <= 168 // Within 20% of $140
     );
 
@@ -87,13 +87,13 @@ describe('CONV-RUN-02: Out-of-Stock Variant Recovery', () => {
     const response = await send(session, "I really wanted that specific shoe though");
 
     // Should be empathetic, not dismissive
-    const lintResults = lintPersona(response.text);
+    const lintResults = personaChecks(response.text);
     
     // Check for contractions (natural speech)
-    expect(lintResults.violations.filter(v => v.type === 'no_contractions')).toHaveLength(0);
+    expect(lintResults.violations.filter((v: string) => v.includes('contraction'))).toHaveLength(0);
     
     // Check sentence variety
-    expect(lintResults.violations.filter(v => v.type === 'monotonous_sentences')).toHaveLength(0);
+    expect(lintResults.violations.filter((v: string) => v.includes('monotonous'))).toHaveLength(0);
     
     // Should not be overly enthusiastic (max 1 exclamation)
     const exclamationCount = (response.text.match(/!/g) || []).length;
@@ -101,43 +101,49 @@ describe('CONV-RUN-02: Out-of-Stock Variant Recovery', () => {
   });
 
   it('should score well on naturalness', async () => {
-    const conversation = session.history.map((h: any) => ({
-      role: h.role,
-      content: h.content
+    const conversation = session.messages.map((m: any) => ({
+      role: m.role,
+      content: m.content
     }));
 
-    const score = await judgeNaturalness(conversation);
+    // Just use the last assistant message for scoring
+    const lastAssistant = conversation.filter((m: any) => m.role === 'assistant').pop();
+    const score = await judgeNaturalness(lastAssistant?.content || '');
     
     // Should score at least 4.0 on naturalness
     expect(score.score).toBeGreaterThanOrEqual(4.0);
     
     // Log for debugging
     console.log('Naturalness Score:', score.score);
-    console.log('Reasoning:', score.reasoning);
+    console.log('Reasons:', score.reasons);
   });
 
   it('should score well on recommendations quality', async () => {
-    const conversation = session.history.map((h: any) => ({
-      role: h.role,
-      content: h.content
+    const conversation = session.messages.map((m: any) => ({
+      role: m.role,
+      content: m.content
     }));
 
-    const score = await judgeRecommendations(conversation);
+    // Get last response with products
+    const lastResponse = conversation.filter((m: any) => m.role === 'assistant').pop();
+    const products = session.messages[session.messages.length - 1]?.shortlist || [];
+    
+    const score = await judgeRecommendations(lastResponse?.content || '', products);
     
     // Should score at least 4.0 on recommendations
     expect(score.score).toBeGreaterThanOrEqual(4.0);
     
     // Log for debugging
     console.log('Recommendations Score:', score.score);
-    console.log('Reasoning:', score.reasoning);
+    console.log('Reasons:', score.reasons);
   });
 
   afterAll(() => {
     // Log full conversation for review
     console.log('\n=== Full Conversation ===');
-    session.history.forEach((h: any, i: number) => {
-      console.log(`\n[${i + 1}] ${h.role.toUpperCase()}:`);
-      console.log(h.content);
+    session.messages.forEach((m: any, i: number) => {
+      console.log(`\n[${i + 1}] ${m.role.toUpperCase()}:`);
+      console.log(m.content);
     });
   });
 });

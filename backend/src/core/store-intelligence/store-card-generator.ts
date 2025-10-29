@@ -6,7 +6,7 @@
  */
 
 import type { StoreCard, StoreCardGenerationContext } from './types';
-import { generateText } from '../../infra/llm/gemini';
+import { chatModel } from '../../infra/llm/gemini';
 
 const STORE_CARD_GENERATION_PROMPT = `You are a retail intelligence analyst. Analyze the provided store information and generate a comprehensive Store Card.
 
@@ -88,11 +88,14 @@ export async function generateStoreCard(
     .replace('{{product_sample}}', productSummary);
 
   // Generate with Gemini
-  const response = await generateText({
-    prompt,
-    temperature: 0.3, // Low temperature for consistency
-    maxTokens: 2000,
+  const result = await chatModel.generateContent({
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.3, // Low temperature for consistency
+      maxOutputTokens: 2000,
+    },
   });
+  const response = result.response.text();
 
   // Parse JSON response
   let cardData: any;

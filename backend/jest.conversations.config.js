@@ -5,7 +5,7 @@
  * They use LLM-as-Judge scoring and may take longer than unit tests.
  */
 
-module.exports = {
+export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/tests/conversations'],

@@ -14,9 +14,9 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
-import { startSession, send, countClarifiers } from '../utils/convoHarness';
-import { assertPersonaChecks, checkNaturalLanguage } from '../utils/personaLinter';
-import { judgeNaturalness, judgeRecommendations, judgeClarification } from '../utils/judges';
+import { startSession, send } from '../utils/convoHarness';
+import { personaChecks } from '../utils/personaLinter';
+import { judgeNaturalness, judgeRecommendations, judgeClarification, judgeGuidance } from '../utils/judges';
 
 describe('CONV-RUN-01: Marathon Training • Natural & Progressive', () => {
   it('guides with warm clarifiers → 2-3 shortlist → final pick', async () => {
@@ -30,7 +30,8 @@ describe('CONV-RUN-01: Marathon Training • Natural & Progressive', () => {
     let response = await send(session, 'I need running shoes');
 
     // Persona checks
-    assertPersonaChecks(response.text, { allowExclaim: 1 });
+    const lintResult1 = personaChecks(response.text, { allowExclaim: 1 });
+    expect(lintResult1.passed).toBe(true);
     
     // Should ask clarifying question (not show products yet)
     expect(response.clarifiers.length).toBeGreaterThanOrEqual(1);
@@ -66,7 +67,8 @@ describe('CONV-RUN-01: Marathon Training • Natural & Progressive', () => {
     response = await send(session, 'Training for my first marathon');
 
     // Persona checks
-    assertPersonaChecks(response.text);
+    const lintResult2 = personaChecks(response.text);
+    expect(lintResult2.passed).toBe(true);
 
     // Should ask 1-2 more clarifiers (road vs trail, experience, budget)
     expect(response.clarifiers.length).toBeGreaterThanOrEqual(1);
@@ -98,7 +100,8 @@ describe('CONV-RUN-01: Marathon Training • Natural & Progressive', () => {
     response = await send(session, 'Road, first marathon, about 30 miles per week');
 
     // Persona checks
-    assertPersonaChecks(response.text);
+    const lintResult3 = personaChecks(response.text);
+    expect(lintResult3.passed).toBe(true);
 
     // Should show 2-3 products now (has enough info)
     expect(response.shortlist.length).toBeGreaterThanOrEqual(2);
@@ -146,7 +149,7 @@ describe('CONV-RUN-01: Marathon Training • Natural & Progressive', () => {
     // ========================================
     console.log('\n📊 Conversation Summary:');
     console.log(`   - Total turns: 3`);
-    console.log(`   - Total clarifiers: ${countClarifiers([response])}`);
+    console.log(`   - Total clarifiers: ${response.clarifiers.length}`);
     console.log(`   - Products shown: ${response.shortlist.length}`);
     console.log(`   - Final pick: ${response.finalPick?.title || response.finalPick?.id}`);
     
@@ -154,7 +157,7 @@ describe('CONV-RUN-01: Marathon Training • Natural & Progressive', () => {
     expect(session.messages.filter((m) => m.role === 'user').length).toBeLessThanOrEqual(4);
 
     // Should not ask too many clarifiers total
-    const totalClarifiers = countClarifiers([response]);
+    const totalClarifiers = response.clarifiers.length;
     expect(totalClarifiers).toBeLessThanOrEqual(6);
 
   }, 60000); // 60s timeout for API calls
@@ -174,7 +177,8 @@ describe('CONV-RUN-01: Marathon Training • Natural & Progressive', () => {
     const response = await send(session, "How's the weather where you are?");
 
     // Persona checks
-    assertPersonaChecks(response.text);
+    const lintResult4 = personaChecks(response.text);
+    expect(lintResult4.passed).toBe(true);
 
     // Should acknowledge off-topic warmly (1 sentence)
     // Then return to goal (1 sentence)

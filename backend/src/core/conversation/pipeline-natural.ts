@@ -215,14 +215,16 @@ export async function runNaturalPipeline(
   // Commerce mode: search products
   const embedding = await deps.generateEmbedding(userMessage.content);
 
-  const searchResults = await runHybridSearch({
-    shopId,
-    embedding,
-    lexicalQuery: userMessage.content,
-    filters: sessionMetadata.activeFilters || {},
-    limit: resultLimit,
+  const searchResults = await runHybridSearch(
     deps,
-  });
+    {
+      shopId,
+      embedding,
+      lexicalQuery: userMessage.content,
+      activeFilters: sessionMetadata.activeFilters || {},
+      limit: resultLimit,
+    }
+  );
 
   console.log(`[Natural Pipeline] Found ${searchResults.products.length} products`);
 

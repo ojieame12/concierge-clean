@@ -316,7 +316,7 @@ function parseJudgeResponse(rawResponse: string): { score: number; reasons: stri
 
     // Validate reasons
     const reasons = Array.isArray(parsed.reasons)
-      ? parsed.reasons.filter((r) => typeof r === 'string')
+      ? parsed.reasons.filter((r: any) => typeof r === 'string')
       : ['No reasons provided'];
 
     return { score, reasons };
