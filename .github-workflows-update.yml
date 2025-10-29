@@ -1,0 +1,188 @@
+name: Conversation Quality Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-conversations:
+    name: Test Natural Conversation Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: concierge_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Seed test database
+        working-directory: backend
+        run: npm run seed
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/concierge_test
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Run conversation quality tests
+        working-directory: backend
+        run: npm run test:conversations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/concierge_test
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          CLIENT_API_KEYS: test-key-123
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: conversation-test-results
+          path: |
+            backend/test-results.json
+            backend/perf-snapshots.json
+            backend/judge-snapshots.json
+
+      - name: Check quality gates
+        if: always()
+        working-directory: backend
+        run: |
+          if [ -f "test-results.json" ]; then
+            echo "📊 Quality Gate Results:"
+            
+            # Extract scores from test results
+            NATURALNESS=$(jq -r '.scores.naturalness // 0' test-results.json)
+            RECOMMENDATIONS=$(jq -r '.scores.recommendations // 0' test-results.json)
+            OVERALL=$(jq -r '.scores.overall // 0' test-results.json)
+            
+            echo "Naturalness: $NATURALNESS"
+            echo "Recommendations: $RECOMMENDATIONS"
+            echo "Overall: $OVERALL"
+            
+            # Check thresholds (3.7 minimum)
+            if (( $(echo "$NATURALNESS < 3.7" | bc -l) )); then
+              echo "❌ Naturalness score below threshold (3.7)"
+              exit 1
+            fi
+            
+            if (( $(echo "$RECOMMENDATIONS < 3.7" | bc -l) )); then
+              echo "❌ Recommendations score below threshold (3.7)"
+              exit 1
+            fi
+            
+            if (( $(echo "$OVERALL < 3.7" | bc -l) )); then
+              echo "❌ Overall score below threshold (3.7)"
+              exit 1
+            fi
+            
+            echo "✅ All quality gates passed!"
+          else
+            echo "⚠️  No test results found, skipping quality gates"
+          fi
+
+      - name: Check performance guardrails
+        if: always()
+        working-directory: backend
+        run: |
+          if [ -f "perf-snapshots.json" ]; then
+            echo "📊 Performance Guardrails:"
+            
+            AVG_LATENCY=$(jq -r '.summary.avgLatencyP95 // 0' perf-snapshots.json)
+            AVG_TOKENS=$(jq -r '.summary.avgTokensPerTurn // 0' perf-snapshots.json)
+            TOTAL_COST=$(jq -r '.summary.totalCost // 0' perf-snapshots.json)
+            
+            echo "Avg P95 Latency: ${AVG_LATENCY}ms"
+            echo "Avg Tokens/Turn: $AVG_TOKENS"
+            echo "Total Cost: \$$TOTAL_COST"
+            
+            # Sanity checks
+            if (( $(echo "$AVG_LATENCY > 5000" | bc -l) )); then
+              echo "⚠️  P95 latency exceeds 5s"
+            fi
+            
+            if (( $(echo "$AVG_TOKENS > 3000" | bc -l) )); then
+              echo "⚠️  Tokens per turn exceeds 3000"
+            fi
+            
+            echo "✅ Performance metrics recorded"
+          else
+            echo "⚠️  No performance snapshot found"
+          fi
+
+      - name: Check judge drift
+        if: always()
+        working-directory: backend
+        run: |
+          if [ -f "judge-snapshots.json" ]; then
+            echo "📊 Judge Drift Monitoring:"
+            echo "✅ Judge scores snapshot saved"
+            echo "See test logs for drift analysis"
+          else
+            echo "⚠️  No judge snapshot found"
+          fi
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            let comment = '## 🤖 Conversation Quality Report\n\n';
+            
+            // Add test results
+            const resultsPath = path.join(process.cwd(), 'backend', 'test-results.json');
+            if (fs.existsSync(resultsPath)) {
+              const results = JSON.parse(fs.readFileSync(resultsPath, 'utf-8'));
+              comment += '### Quality Scores\n\n';
+              comment += `- **Naturalness**: ${results.scores?.naturalness || 'N/A'}\n`;
+              comment += `- **Recommendations**: ${results.scores?.recommendations || 'N/A'}\n`;
+              comment += `- **Overall**: ${results.scores?.overall || 'N/A'}\n\n`;
+            }
+            
+            // Add performance metrics
+            const perfPath = path.join(process.cwd(), 'backend', 'perf-snapshots.json');
+            if (fs.existsSync(perfPath)) {
+              const perf = JSON.parse(fs.readFileSync(perfPath, 'utf-8'));
+              comment += '### Performance Metrics\n\n';
+              comment += `- **Avg P95 Latency**: ${perf.summary?.avgLatencyP95?.toFixed(0) || 'N/A'}ms\n`;
+              comment += `- **Avg Tokens/Turn**: ${perf.summary?.avgTokensPerTurn?.toFixed(0) || 'N/A'}\n`;
+              comment += `- **Total Cost**: $${perf.summary?.totalCost?.toFixed(4) || 'N/A'}\n\n`;
+            }
+            
+            comment += '---\n';
+            comment += '*View full logs in the Actions tab*';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

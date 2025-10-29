@@ -6,6 +6,7 @@
  */
 
 import { chatModel } from '../../src/infra/llm/gemini';
+import { getGlobalMonitor } from './judgeDriftMonitor';
 
 export interface JudgeScore {
   score: number; // 1-5
