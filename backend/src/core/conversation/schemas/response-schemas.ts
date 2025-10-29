@@ -286,16 +286,13 @@ export const repairAndValidateChatTurn = (data: any): ChatTurn => {
           seg.items = seg.items
             .map((p: any) => {
               // Fallback: if price is missing, try to get it from variants
-              if (p && (!p.price || typeof p.price !== 'number')) {
-                if (p.variants && Array.isArray(p.variants) && p.variants[0]?.price) {
-                  p.price = p.variants[0].price;
-                } else {
-                  p.price = 0; // Last resort fallback
-                }
+              if (p && (typeof p.price !== 'number' || p.price <= 0)) {
+                const fallback = p?.variants?.[0]?.price;
+                p.price = typeof fallback === 'number' && fallback > 0 ? fallback : null;
               }
               return p;
             })
-            .filter((p: any) => p && p.id && p.title && typeof p.price === 'number')
+            .filter((p: any) => p && p.id && p.title && typeof p.price === 'number' && p.price > 0)
             .slice(0, 10); // Max 10 products
         }
         

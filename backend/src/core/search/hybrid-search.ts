@@ -51,6 +51,7 @@ export interface HybridSearchParams {
   embedding: number[];
   limit?: number;
   activeFilters?: Record<string, string>;
+  priorityBrands?: string[];
 }
 
 const normalise = (value: string | null | undefined) => value?.toLowerCase().trim() ?? '';
@@ -144,7 +145,7 @@ const matchesFilters = (product: Product, filters: Record<string, string>): bool
 
 export const runHybridSearch = async (
   { supabaseAdmin }: HybridSearchDependencies,
-  { shopId, lexicalQuery, embedding, limit = 12, activeFilters = {} }: HybridSearchParams
+  { shopId, lexicalQuery, embedding, limit = 12, activeFilters = {}, priorityBrands = [] }: HybridSearchParams
 ): Promise<RetrievalSet> => {
   const priceRange = parsePriceBucket(activeFilters.price_bucket);
 
@@ -152,7 +153,7 @@ export const runHybridSearch = async (
     p_shop: shopId,
     q_vec: JSON.stringify(embedding),
     q_lex: lexicalQuery,
-    p_limit: limit,
+    p_limit: Math.min(limit, 200),
     p_min_price: priceRange.min,
     p_max_price: priceRange.max,
   });
@@ -224,6 +225,7 @@ export const runHybridSearch = async (
 
   // Apply multi-factor re-ranking for better relevance
   const rerankedProducts = rerankProducts(enrichedProducts, {
+    priorityBrands,
     query: lexicalQuery,
     constraints: activeFilters,
     weights: DEFAULT_WEIGHTS,

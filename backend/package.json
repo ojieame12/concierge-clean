@@ -16,13 +16,14 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.47.10",
+    "@types/pg": "^8.15.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "jsonrepair": "^3.13.1",
     "luxon": "^3.5.0",
     "marked": "^16.4.1",
-    "pg": "^8.13.1",
+    "pg": "^8.16.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
