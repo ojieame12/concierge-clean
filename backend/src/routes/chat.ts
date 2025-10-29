@@ -4,6 +4,7 @@ import express from 'express';
 import { z } from 'zod';
 
 import { generateEmbedding } from '../infra/llm/gemini';
+import { repairAndValidateChatTurn, safeParseChatTurn } from '../core/conversation/schemas';
 import { supabaseAdmin } from '../infra/supabase/client';
 import { getOrCreateSession, updateSessionMetadata } from '../core/session/session-store';
 import { runConversationPipeline } from '../core/conversation/pipeline';
@@ -183,26 +184,49 @@ router.post('/', async (req, res) => {
       console.warn('Failed to persist conversation events', eventError);
     }
 
-    const doneMetadata = {
-      ...(pipelineResult.pepTurn.metadata ?? {}),
-      session_key: sessionKey,
-      rapport_mode: pipelineResult.rapportMode,
-      info_mode: pipelineResult.pepTurn.metadata?.info_mode ?? undefined,
-      zero_result_streak: pipelineResult.zeroResultStreakNext,
-      relaxation_steps: pipelineResult.relaxationSteps,
-      offers_presented: pipelineResult.offersPresented,
-      negotiation_state: pipelineResult.negotiationState,
-      fact_sheets: pipelineResult.factSheets?.slice(0, 3),
-      layout_hints: pipelineResult.uiHints ?? (pipelineResult.pepTurn.metadata as any)?.ui_hints ?? null,
-      manual_clarifier: pipelineResult.manualClarifier ?? null,
-      pending_clarifier: pipelineResult.pendingClarifier ?? null,
-    };
+    // Validate pipeline result with Zod schema
+    let validatedTurn;
+    try {
+      validatedTurn = repairAndValidateChatTurn({
+        segments: pipelineResult.pepTurn.segments,
+        metadata: {
+          ...(pipelineResult.pepTurn.metadata ?? {}),
+          session_key: sessionKey,
+          rapport_mode: pipelineResult.rapportMode,
+          info_mode: pipelineResult.pepTurn.metadata?.info_mode ?? undefined,
+          zero_result_streak: pipelineResult.zeroResultStreakNext,
+          relaxation_steps: pipelineResult.relaxationSteps,
+          offers_presented: pipelineResult.offersPresented,
+          negotiation_state: pipelineResult.negotiationState,
+          fact_sheets: pipelineResult.factSheets?.slice(0, 3),
+          layout_hints: pipelineResult.uiHints ?? (pipelineResult.pepTurn.metadata as any)?.ui_hints ?? null,
+          manual_clarifier: pipelineResult.manualClarifier ?? null,
+          pending_clarifier: pipelineResult.pendingClarifier ?? null,
+        }
+      });
+    } catch (validationError) {
+      console.error('Response validation failed:', validationError);
+      // Fallback to safe response
+      validatedTurn = {
+        segments: [{
+          type: 'narrative' as const,
+          text: 'I apologize, but I encountered an issue processing your request. Could you please rephrase?'
+        }],
+        metadata: {
+          session_key: sessionKey,
+          validation_message: 'Response validation failed'
+        }
+      };
+    }
+
+    const doneMetadata = validatedTurn.metadata ?? {};
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    for (const segment of pipelineResult.pepTurn.segments) {
+    // Stream validated segments
+    for (const segment of validatedTurn.segments) {
       res.write(`data: ${JSON.stringify({ type: 'segment', segment })}\n\n`);
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
