@@ -1,0 +1,124 @@
+name: Conversation Quality Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-conversations:
+    name: Test Natural Conversation Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run conversation quality tests
+        working-directory: backend
+        run: npm run test:conversations
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          CLIENT_API_KEYS: ${{ secrets.CLIENT_API_KEYS }}
+          CHAT_API_URL: http://localhost:4000/api/chat-natural
+
+      - name: Upload test results
+        if: always( )
+        uses: actions/upload-artifact@v4
+        with:
+          name: conversation-test-results
+          path: backend/test-results/
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const resultsPath = 'backend/test-results/summary.json';
+            
+            if (fs.existsSync(resultsPath)) {
+              const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+              
+              const comment = `## 🤖 Conversation Quality Test Results
+              
+              | Metric | Score | Status |
+              |--------|-------|--------|
+              | Naturalness | ${results.naturalness.toFixed(1)}/5.0 | ${results.naturalness >= 4.0 ? '✅' : '❌'} |
+              | Recommendations | ${results.recommendations.toFixed(1)}/5.0 | ${results.recommendations >= 4.0 ? '✅' : '❌'} |
+              | Clarification | ${results.clarification.toFixed(1)}/5.0 | ${results.clarification >= 4.0 ? '✅' : '❌'} |
+              | Overall | ${results.overall.toFixed(1)}/5.0 | ${results.overall >= 4.0 ? '✅' : '❌'} |
+              
+              **Tests:** ${results.passed}/${results.total} passed
+              **Duration:** ${results.duration}s
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+  quality-gates:
+    name: Check Quality Gates
+    runs-on: ubuntu-latest
+    needs: test-conversations
+    if: always()
+
+    steps:
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          name: conversation-test-results
+          path: test-results
+
+      - name: Check quality thresholds
+        run: |
+          if [ -f test-results/summary.json ]; then
+            NATURALNESS=$(jq -r '.naturalness' test-results/summary.json)
+            RECOMMENDATIONS=$(jq -r '.recommendations' test-results/summary.json)
+            OVERALL=$(jq -r '.overall' test-results/summary.json)
+            
+            echo "Quality Scores:"
+            echo "  Naturalness: $NATURALNESS / 5.0"
+            echo "  Recommendations: $RECOMMENDATIONS / 5.0"
+            echo "  Overall: $OVERALL / 5.0"
+            
+            # Check thresholds
+            if (( $(echo "$NATURALNESS < 4.0" | bc -l) )); then
+              echo "❌ Naturalness score below threshold (4.0)"
+              exit 1
+            fi
+            
+            if (( $(echo "$RECOMMENDATIONS < 4.0" | bc -l) )); then
+              echo "❌ Recommendations score below threshold (4.0)"
+              exit 1
+            fi
+            
+            if (( $(echo "$OVERALL < 4.0" | bc -l) )); then
+              echo "❌ Overall score below threshold (4.0)"
+              exit 1
+            fi
+            
+            echo "✅ All quality gates passed!"
+          else
+            echo "⚠️  No test results found, skipping quality gates"
+          fi
