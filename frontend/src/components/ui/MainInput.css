@@ -1,0 +1,105 @@
+/**
+ * MainInput Styles - EXACT from concierge
+ *
+ * Two states: Full (hero) and Compact (sticky)
+ */
+
+.main-input-wrapper {
+  width: 100%;
+  transition: all 0.5s ease;
+  margin-bottom: 32px;
+}
+
+.main-input-wrapper--compact {
+  margin-bottom: 16px;
+}
+
+/* Container */
+.main-input-container {
+  position: relative;
+  background: var(--concierge-card-background);
+  border: 2px solid var(--concierge-border);
+  padding: 24px;
+  padding-right: 80px;
+  border-radius: 20px;
+  box-shadow: 0 12px 48px -8px rgba(0, 0, 0, 0.12);
+  transition: all 0.5s ease;
+}
+
+.main-input-wrapper--compact .main-input-container {
+  border-radius: 999px;
+  padding: 12px 16px;
+  padding-right: 60px;
+}
+
+.main-input-container:focus-within {
+  border-color: var(--concierge-primary);
+  box-shadow: 0 16px 64px -8px rgba(0, 0, 0, 0.16);
+}
+
+/* Textarea */
+.main-input-textarea {
+  width: 100%;
+  resize: none;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  font-weight: 300;
+  font-family: var(--concierge-font-family);
+  color: var(--concierge-text);
+  line-height: 1.6;
+  transition: all 0.5s ease;
+}
+
+.main-input-textarea::placeholder {
+  color: var(--concierge-text-tertiary);
+  font-weight: 300;
+}
+
+.main-input-textarea:focus {
+  outline: none;
+}
+
+.main-input-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Send Button */
+.main-input-send-button {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--concierge-button-background);
+  color: var(--concierge-button-text);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.5s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.main-input-send-button--compact {
+  top: 50%;
+  bottom: auto;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+}
+
+.main-input-send-button:hover:not(:disabled) {
+  background: var(--concierge-primary);
+  opacity: 0.9;
+}
+
+.main-input-send-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

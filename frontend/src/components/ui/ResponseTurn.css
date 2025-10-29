@@ -1,0 +1,148 @@
+/**
+ * ResponseTurn Styles
+ *
+ * MAINTAINS (our polish):
+ * - Exact sizing: 42px lead, 17px detail
+ * - Spacing: 24px gaps, specific margins
+ * - Layout: max-widths, padding
+ *
+ * INHERITS (from store):
+ * - Font families: --concierge-heading-font, --concierge-font-family
+ * - Text colors: --concierge-text, --concierge-text-secondary
+ */
+
+.concierge-response-turn {
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* KEEP: our spacing */
+}
+
+/* === Main Lead (42px heading) === */
+
+.concierge-response-turn__lead-wrapper {
+  max-width: 720px; /* KEEP: our max-width */
+  overflow: visible;
+}
+
+.concierge-response-turn__lead {
+  /* KEEP: our sizing */
+  font-size: 42px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+
+  /* INHERIT: from store */
+  font-family: var(--concierge-heading-font);
+  font-weight: 300; /* Light weight for display */
+  color: var(--concierge-text);
+
+  margin: 0;
+  transition: font-size 0.3s ease;
+}
+
+.concierge-response-turn__lead--collapsed {
+  font-size: 32px; /* KEEP: collapsed size */
+}
+
+.concierge-response-turn__lead-text {
+  display: block;
+  padding-left: 24px; /* KEEP: our indent */
+  margin-left: -24px;
+}
+
+/* === Detail Text (17px body) === */
+
+.concierge-response-turn__detail-wrapper {
+  max-width: 700px; /* KEEP: our max-width */
+  animation: concierge-detail-fade 0.35s ease forwards;
+}
+
+.concierge-response-turn__detail-wrapper--active {
+  /* INHERIT: from store */
+  color: var(--concierge-text-secondary);
+}
+
+.concierge-response-turn__detail-wrapper--collapsed {
+  /* INHERIT: from store (slightly faded) */
+  color: var(--concierge-text-secondary);
+  opacity: 0.8;
+}
+
+.concierge-response-turn__detail {
+  /* KEEP: our sizing */
+  font-size: 17px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+
+  /* INHERIT: from store */
+  font-family: var(--concierge-font-family);
+  font-weight: 400; /* Normal weight */
+  color: var(--concierge-text-secondary);
+  opacity: 0.92;
+
+  margin: 0;
+}
+
+.concierge-response-turn__detail--highlighted {
+  display: inline;
+}
+
+.concierge-response-turn__detail-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  margin: 0 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--concierge-text);
+  font-weight: 600;
+  font-size: 0.85em;
+  letter-spacing: 0.02em;
+}
+
+.concierge-response-turn__detail-pill:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+@keyframes concierge-detail-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === Content Area === */
+
+.concierge-response-turn__content {
+  /* Content follows naturally with inherited spacing */
+}
+
+/* === Compact Variant === */
+
+.concierge-response-turn--compact {
+  gap: 16px; /* KEEP: tighter spacing for compact */
+}
+
+/* === Responsive Adjustments === */
+
+@media (max-width: 768px) {
+  .concierge-response-turn__lead {
+    font-size: 32px; /* KEEP: mobile size */
+  }
+
+  .concierge-response-turn__lead--collapsed {
+    font-size: 28px; /* KEEP: mobile collapsed */
+  }
+
+  .concierge-response-turn__detail {
+    font-size: 16px; /* KEEP: mobile size */
+  }
+
+  .concierge-response-turn__lead-wrapper,
+  .concierge-response-turn__detail-wrapper {
+    max-width: 100%; /* Full width on mobile */
+  }
+}

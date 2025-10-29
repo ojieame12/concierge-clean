@@ -1,0 +1,323 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './tokens.css';
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--theme-text);
+  background: var(--theme-bg);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Utility classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-stagger-1 {
+    animation-delay: 0ms;
+  }
+
+  .animate-stagger-2 {
+    animation-delay: 100ms;
+  }
+
+  .animate-stagger-3 {
+    animation-delay: 200ms;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-border-dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-text-tertiary);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+html { scrollbar-gutter: stable; }
+
+.thread-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+
+.thread-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.option-label {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.journey-surface {
+  position: relative;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--journey-gradient-start) 0%, var(--journey-gradient-mid) 55%, var(--journey-gradient-end) 100%);
+  transition: background 0.3s ease-in-out;
+}
+
+.journey-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.journey-dots {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background-image:
+    radial-gradient(circle, var(--theme-text) 1.5px, transparent 1.5px),
+    radial-gradient(circle, var(--theme-text) 1px, transparent 1px);
+  background-size: 48px 48px, 96px 96px;
+  background-position: 0 0, 24px 24px;
+  animation: dots-drift-near 25s linear infinite, dots-drift-far 35s linear infinite reverse;
+}
+
+[data-theme="dark"] .journey-dots {
+  opacity: 0.06;
+}
+
+@keyframes dots-drift-near {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(48px, 48px);
+  }
+}
+
+@keyframes dots-drift-far {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(-96px, -96px);
+  }
+}
+
+.journey-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(140px);
+  opacity: 0.65;
+  mix-blend-mode: screen;
+  animation: float 20s ease-in-out infinite;
+  will-change: transform;
+}
+
+.journey-blob::after {
+  content: '';
+  position: absolute;
+  inset: -15%;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0.25;
+  filter: blur(100px);
+  animation: glow-pulse 10s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -30px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+}
+
+.journey-blob--top {
+  width: 44rem;
+  height: 44rem;
+  top: -14rem;
+  right: -10rem;
+  background: radial-gradient(circle at 30% 30%, var(--blob-top-start), var(--blob-top-end));
+  animation-delay: 0s;
+  animation-duration: 25s;
+}
+
+.journey-blob--top::after {
+  animation-delay: 0s;
+}
+
+.journey-blob--mid {
+  width: 34rem;
+  height: 34rem;
+  top: 35%;
+  left: 55%;
+  background: radial-gradient(circle at 50% 50%, var(--blob-mid-start), var(--blob-mid-end));
+  opacity: 0.5;
+  animation-delay: 8s;
+  animation-duration: 18s;
+}
+
+.journey-blob--mid::after {
+  animation-delay: 3.3s;
+}
+
+.journey-blob--bottom {
+  width: 52rem;
+  height: 52rem;
+  bottom: -20rem;
+  left: -14rem;
+  background: radial-gradient(circle at 60% 60%, var(--blob-bottom-start), var(--blob-bottom-end));
+  animation-delay: 15s;
+  animation-duration: 22s;
+}
+
+.journey-blob--bottom::after {
+  animation-delay: 6.7s;
+}
+
+/* Bottom input bar with gradient scrim */
+.input-bar-scrim {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .input-bar-scrim {
+  background-color: rgba(44, 48, 58, 0.8);
+  border-top-color: rgba(58, 63, 74, 0.6);
+}
+
+.input-bar-scrim::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(245, 245, 240, 0.1) 30%,
+    rgba(245, 245, 240, 0.4) 60%,
+    rgba(255, 255, 255, 0.8) 100%
+  );
+  pointer-events: none;
+}
+
+[data-theme="dark"] .input-bar-scrim::before {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(26, 29, 35, 0.1) 30%,
+    rgba(26, 29, 35, 0.4) 60%,
+    rgba(44, 48, 58, 0.8) 100%
+  );
+}
+
+/* Prompt cards - glassmorphic style */
+.prompt-card {
+  background: rgba(255, 255, 255, 0.65);
+}
+
+[data-theme="dark"] .prompt-card {
+  background: rgba(53, 58, 69, 0.65);
+}
+
+.prompt-card:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="dark"] .prompt-card:hover {
+  background: rgba(53, 58, 69, 0.85);
+}
+
+/* Mobile responsive blobs */
+@media (max-width: 768px) {
+  .journey-blob--top {
+    width: 20rem;
+    height: 20rem;
+    top: -6rem;
+    right: -4rem;
+  }
+
+  .journey-blob--mid {
+    width: 16rem;
+    height: 16rem;
+  }
+
+  .journey-blob--bottom {
+    width: 24rem;
+    height: 24rem;
+    bottom: -10rem;
+    left: -6rem;
+  }
+}

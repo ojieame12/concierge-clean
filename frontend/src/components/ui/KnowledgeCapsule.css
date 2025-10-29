@@ -1,0 +1,57 @@
+.segment-capsule {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.segment-capsule__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.segment-capsule__label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.5);
+  flex: 0 0 auto;
+}
+
+.segment-capsule__values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.segment-capsule__pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.75);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.segment-capsule__pill:hover,
+.segment-capsule__pill:focus-visible {
+  background: rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.segment-capsule__pill:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+}

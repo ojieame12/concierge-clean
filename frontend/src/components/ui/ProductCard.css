@@ -1,0 +1,165 @@
+/**
+ * ProductCard - EXACT styles from concierge
+ *
+ * Maintains all polish: aspect ratios, hover effects, animations
+ * Uses CSS variables for theming
+ */
+
+.product-card-real {
+  background: transparent;
+  cursor: pointer;
+  max-width: 220px;
+  margin: 0 auto;
+}
+
+/* === Image Container === */
+
+.product-card-real__image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;  /* EXACT ratio from original */
+  background: var(--concierge-card-background);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  transition: box-shadow 0.3s ease;
+}
+
+.product-card-real:hover .product-card-real__image-container {
+  box-shadow: var(--concierge-card-shadow);
+}
+
+/* Selection ring */
+.product-card-real[data-selected="true"] .product-card-real__image-container {
+  box-shadow: 0 0 0 2px var(--concierge-primary), 0 0 0 6px var(--concierge-background);
+}
+
+.product-card-real__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.product-card-real:hover .product-card-real__image {
+  transform: scale(1.05);
+}
+
+/* === Content === */
+
+.product-card-real__content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* === Color Swatches === */
+
+.product-card-real__colors {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.product-card-real__color-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--concierge-border);
+}
+
+/* === Title === */
+
+.product-card-real__title {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--concierge-text);
+  margin: 0;
+
+  /* Clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* === Concierge Reason === */
+
+.product-card-real__reason {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--concierge-text-secondary);
+  margin: 0;
+
+  /* Clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* === Price (28px display font - EXACT from original) === */
+
+.product-card-real__price {
+  font-size: 28px;
+  font-family: var(--concierge-heading-font);  /* Optima */
+  font-weight: 300;
+  color: var(--concierge-text);
+  margin: 4px 0 0 0;
+}
+
+/* === Reviews === */
+
+.product-card-real__reviews {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--concierge-text-secondary);
+  margin-top: 4px;
+}
+
+.product-card-real__stars {
+  display: flex;
+  gap: 2px;
+}
+
+.product-card-real__star--filled {
+  color: #facc15;  /* Yellow for filled stars */
+}
+
+.product-card-real__star--empty {
+  color: #d1d5db;  /* Gray for empty stars */
+}
+
+.product-card-real__review-count {
+  margin-left: 2px;
+}
+
+/* === Badges === */
+
+.product-card-real__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.product-card-real__badge {
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--concierge-primary) 10%, transparent);
+  color: var(--concierge-primary);
+  border-radius: 4px;
+}
+
+/* === Responsive === */
+
+@media (max-width: 768px) {
+  .product-card-real {
+    max-width: 100%;
+  }
+}

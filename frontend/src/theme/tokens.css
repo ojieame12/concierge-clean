@@ -1,0 +1,74 @@
+/* Font imports */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+/* Design tokens - Theme-adaptive via CSS variables */
+:root {
+  /* Light mode (default) */
+  --theme-primary: #4a5d47;
+  --theme-secondary: #6b7b68;
+  --theme-accent: #4a5d47;
+  --theme-bg: #f5f5f0;
+  --theme-surface: #fafaf8;
+  --theme-overlay: #ffffff;
+  --theme-text: #2d2d2d;
+  --theme-text-secondary: #6b7280;
+  --theme-text-tertiary: #9ca3af;
+  --theme-text-inverse: #ffffff;
+  --theme-border: #e5e7eb;
+  --theme-border-light: #f3f4f6;
+  --theme-border-dark: #d1d5db;
+
+  /* Blob colors (light) */
+  --blob-top-start: rgba(102, 145, 199, 0.45);
+  --blob-top-end: rgba(102, 145, 199, 0);
+  --blob-mid-start: rgba(255, 203, 129, 0.35);
+  --blob-mid-end: rgba(255, 203, 129, 0);
+  --blob-bottom-start: rgba(180, 221, 206, 0.45);
+  --blob-bottom-end: rgba(180, 221, 206, 0);
+
+  /* Journey surface gradient */
+  --journey-gradient-start: rgba(247, 243, 234, 0.97);
+  --journey-gradient-mid: rgba(237, 243, 244, 0.98);
+  --journey-gradient-end: rgba(248, 245, 238, 0.96);
+
+  /* Typography */
+  --font-display: Optima, 'Palatino Linotype', Palatino, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* Spacing */
+  --radius-sm: 6px;
+  --radius-base: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+/* Dark mode - Softer, more refined */
+[data-theme='dark'] {
+  --theme-primary: #7db88e;
+  --theme-secondary: #a0c4ae;
+  --theme-accent: #7db88e;
+  --theme-bg: #1a1d23;
+  --theme-surface: #24272f;
+  --theme-overlay: #353a45;
+  --theme-text: #e8eaed;
+  --theme-text-secondary: #b4b9c2;
+  --theme-text-tertiary: #8a91a0;
+  --theme-text-inverse: #1a1d23;
+  --theme-border: #3a3f4a;
+  --theme-border-light: #454b58;
+  --theme-border-dark: #2f3441;
+
+  /* Blob colors (dark - visible gradients) */
+  --blob-top-start: rgba(120, 160, 210, 0.4);
+  --blob-top-end: rgba(80, 120, 170, 0.05);
+  --blob-mid-start: rgba(240, 190, 120, 0.35);
+  --blob-mid-end: rgba(200, 150, 80, 0.05);
+  --blob-bottom-start: rgba(140, 200, 180, 0.38);
+  --blob-bottom-end: rgba(100, 160, 140, 0.05);
+
+  /* Journey surface gradient (dark - subtle variation) */
+  --journey-gradient-start: rgba(26, 29, 35, 0.95);
+  --journey-gradient-mid: rgba(30, 34, 42, 0.96);
+  --journey-gradient-end: rgba(28, 31, 38, 0.95);
+}

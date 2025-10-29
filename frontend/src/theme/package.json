@@ -1,0 +1,11 @@
+{
+  "name": "@insite/concierge-theme",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared global styles and design tokens for the concierge experience.",
+  "exports": {
+    ".": "./globals.css",
+    "./globals.css": "./globals.css",
+    "./tokens.css": "./tokens.css"
+  }
+}

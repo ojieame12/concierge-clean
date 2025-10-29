@@ -1,0 +1,197 @@
+/* ComparisonTable styles with CSS variables */
+
+.comparison-table-container {
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.comparison-table-header {
+  display: grid;
+  gap: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(var(--concierge-border), 0.2), 0.3));
+}
+
+.comparison-product-card {
+  border-radius: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comparison-product-card.selected {
+  background-color: color-mix(in srgb, var(--concierge-primary) 10%, transparent), 0.05));
+  box-shadow: 0 0 0 2px var(--concierge-primary);
+}
+
+.comparison-product-card.hovered:not(.selected) {
+  background-color: rgba(var(--concierge-surface), 0.5), 0.5));
+}
+
+.comparison-product-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comparison-product-image {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--concierge-surface);
+}
+
+.comparison-product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.comparison-product-title {
+  font-size: 15px;
+  font-family: var(--concierge-heading-font);
+  font-weight: 300;
+  color: var(--concierge-text);
+  text-align: left;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.comparison-inspect-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--concierge-primary);
+  transition: color 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.comparison-inspect-button:hover {
+  color: var(--concierge-secondary);
+}
+
+.comparison-table-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.comparison-table-row {
+  display: grid;
+  gap: 32px;
+  padding: 12px 0;
+}
+
+.comparison-table-row.bordered {
+  border-bottom: 1px solid rgba(var(--concierge-border), 0.2), 0.2));
+}
+
+.comparison-feature-label {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--concierge-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.comparison-feature-value {
+  text-align: left;
+  padding: 4px 12px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.comparison-feature-value.selected {
+  background-color: color-mix(in srgb, var(--concierge-primary) 10%, transparent), 0.05));
+}
+
+.comparison-feature-value.hovered:not(.selected) {
+  background-color: rgba(var(--concierge-surface), 0.5), 0.5));
+}
+
+.comparison-feature-text {
+  font-size: 16px;
+  font-family: var(--concierge-heading-font);
+  font-weight: 300;
+  color: var(--concierge-text);
+}
+
+.comparison-value-empty {
+  display: inline-block;
+  color: var(--concierge-text-tertiary);
+}
+
+.comparison-value-check {
+  display: inline-block;
+  color: var(--success, #10b981);
+}
+
+.comparison-value-text {
+  color: var(--concierge-text);
+}
+
+.comparison-recommendation {
+  padding-top: 24px;
+  opacity: 0.7;
+}
+
+.comparison-recommendation-content {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.comparison-recommendation-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comparison-recommendation-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comparison-recommendation-icon {
+  color: color-mix(in srgb, var(--concierge-primary) 10%, transparent), 0.8));
+  flex-shrink: 0;
+}
+
+.comparison-recommendation-title {
+  font-size: 22px;
+  font-family: var(--concierge-heading-font);
+  font-weight: 300;
+  color: var(--concierge-text);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.comparison-recommendation-reason {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--concierge-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.comparison-recommendation-actions {
+  flex-shrink: 0;
+  align-self: center;
+}
