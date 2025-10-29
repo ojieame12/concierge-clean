@@ -1,6 +1,6 @@
 import type { ElementType } from 'react';
-import type { Segment } from '@insite/concierge-ui/types/conversation';
-import type { ProductCard as ProductCardType } from '@insite/concierge-ui/types';
+import type { Segment } from '@/types/conversation';
+import type { ProductCard as ProductCardType } from '@/types';
 import { ProductCard } from '../products/ProductCard';
 import { ComparisonTable } from '../products/ComparisonTable';
 import { OptionButtons } from '../conversation/OptionButtons';

@@ -5,7 +5,7 @@ import type {
   SSEEvent,
   Filter,
   ConversationMetadata,
-} from '@insite/concierge-ui/types/conversation';
+} from '@/types/conversation';
 
 interface UseConversationOptions {
   shop: string;

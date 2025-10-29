@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import type { Segment } from '@insite/concierge-ui/types/conversation';
-import type { ProductCard as ProductCardType } from '@insite/concierge-ui/types';
+import type { Segment } from '@/types/conversation';
+import type { ProductCard as ProductCardType } from '@/types';
 import { SegmentRenderer } from '../segments/SegmentRenderer';
 import { TypingText } from '../animations/TypingText';
 

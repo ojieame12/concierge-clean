@@ -1,17 +1,17 @@
 import express from 'express';
-import cors from 'cors';
-import { corsMiddleware } from './middleware/cors';
+import { createCorsMiddleware } from './middleware/cors';
+import { config } from './config';
 import { requireClientKey } from './middleware/require-client-key';
-import chatRouter from './routes/chat';
+import { chatRouter } from './routes/chat';
 import themeRouter from './routes/theme';
-import eventsRouter from './routes/events';
+import { eventsRouter } from './routes/events';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
-app.use(corsMiddleware);
+app.use(createCorsMiddleware({ origins: config.server.cors.origins }));
 
 // Health check
 app.get('/healthz', (_req, res) => {
