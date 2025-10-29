@@ -1,0 +1,119 @@
+[
+  {
+    "id": "shoe-301",
+    "shop_id": "run-shop",
+    "title": "StrideStable 3",
+    "vendor": "Stride",
+    "brand": "Stride",
+    "category_path": ["Footwear","Running Shoes"],
+    "description": "Stable daily trainer for mild over‑pronation.",
+    "attributes": { "terrain": "road", "support_level": "stability", "cushioning": "medium", "weight_oz": 9.1, "stack_height_mm": 32, "drop_mm": 8 },
+    "variants": [
+      { "sku": "SS3-BLK-9",  "color": "Black", "size": "9",  "available": true,  "price": 110, "currency": "USD" },
+      { "sku": "SS3-BLK-10", "color": "Black", "size": "10", "available": true,  "price": 110, "currency": "USD" },
+      { "sku": "SS3-GRY-9",  "color": "Grey",  "size": "9",  "available": true,  "price": 110, "currency": "USD" }
+    ],
+    "price": 110,
+    "currency": "USD",
+    "in_stock": true,
+    "rating": 4.6,
+    "review_count": 822
+  },
+  {
+    "id": "shoe-342",
+    "shop_id": "run-shop",
+    "title": "Nimbus CloudRunner Lite",
+    "vendor": "Nimbus",
+    "brand": "Nimbus",
+    "category_path": ["Footwear","Running Shoes"],
+    "description": "Light, lively neutral trainer.",
+    "attributes": { "terrain": "road", "support_level": "neutral", "cushioning": "light", "weight_oz": 8.4, "stack_height_mm": 28, "drop_mm": 8 },
+    "variants": [
+      { "sku": "NCRL-GRY-9", "color": "Grey", "size": "9", "available": true, "price": 120, "currency": "USD" },
+      { "sku": "NCRL-GRY-10", "color": "Grey", "size": "10", "available": true, "price": 120, "currency": "USD" },
+      { "sku": "NCRL-BLU-9", "color": "Blue", "size": "9", "available": true, "price": 120, "currency": "USD" }
+    ],
+    "price": 120,
+    "currency": "USD",
+    "in_stock": true,
+    "rating": 4.5,
+    "review_count": 512
+  },
+  {
+    "id": "shoe-399",
+    "shop_id": "run-shop",
+    "title": "Fleet MarathonMax",
+    "vendor": "Fleet",
+    "brand": "Fleet",
+    "category_path": ["Footwear","Running Shoes"],
+    "description": "Max‑cushion trainer for long mileage.",
+    "attributes": { "terrain": "road", "support_level": "neutral", "cushioning": "high", "weight_oz": 9.8, "stack_height_mm": 38, "drop_mm": 6 },
+    "variants": [
+      { "sku": "FMM-BLU-9", "color": "Blue", "size": "9", "available": false, "price": 140, "currency": "USD" },
+      { "sku": "FMM-BLK-9", "color": "Black", "size": "9", "available": false, "price": 140, "currency": "USD" },
+      { "sku": "FMM-GRY-10", "color": "Grey", "size": "10", "available": true, "price": 140, "currency": "USD" }
+    ],
+    "price": 140,
+    "currency": "USD",
+    "in_stock": false,
+    "rating": 4.7,
+    "review_count": 1093
+  },
+  {
+    "id": "shoe-410",
+    "shop_id": "run-shop",
+    "title": "Stride SpeedPro",
+    "vendor": "Stride",
+    "brand": "Stride",
+    "category_path": ["Footwear","Running Shoes"],
+    "description": "Responsive trainer for tempo runs and races.",
+    "attributes": { "terrain": "road", "support_level": "neutral", "cushioning": "medium", "weight_oz": 7.9, "stack_height_mm": 30, "drop_mm": 10 },
+    "variants": [
+      { "sku": "SSP-RED-9", "color": "Red", "size": "9", "available": true, "price": 130, "currency": "USD" },
+      { "sku": "SSP-RED-10", "color": "Red", "size": "10", "available": true, "price": 130, "currency": "USD" }
+    ],
+    "price": 130,
+    "currency": "USD",
+    "in_stock": true,
+    "rating": 4.4,
+    "review_count": 387
+  },
+  {
+    "id": "shoe-425",
+    "shop_id": "run-shop",
+    "title": "Nimbus TrailBlazer",
+    "vendor": "Nimbus",
+    "brand": "Nimbus",
+    "category_path": ["Footwear","Running Shoes"],
+    "description": "Grippy trail runner for technical terrain.",
+    "attributes": { "terrain": "trail", "support_level": "neutral", "cushioning": "medium", "weight_oz": 10.2, "stack_height_mm": 34, "drop_mm": 6 },
+    "variants": [
+      { "sku": "NTB-GRN-9", "color": "Green", "size": "9", "available": true, "price": 135, "currency": "USD" },
+      { "sku": "NTB-GRN-10", "color": "Green", "size": "10", "available": true, "price": 135, "currency": "USD" }
+    ],
+    "price": 135,
+    "currency": "USD",
+    "in_stock": true,
+    "rating": 4.6,
+    "review_count": 654
+  },
+  {
+    "id": "shoe-440",
+    "shop_id": "run-shop",
+    "title": "Fleet UltraComfort",
+    "vendor": "Fleet",
+    "brand": "Fleet",
+    "category_path": ["Footwear","Running Shoes"],
+    "description": "Plush cushioning for recovery runs.",
+    "attributes": { "terrain": "road", "support_level": "neutral", "cushioning": "high", "weight_oz": 10.5, "stack_height_mm": 40, "drop_mm": 8 },
+    "variants": [
+      { "sku": "FUC-BLK-9", "color": "Black", "size": "9", "available": true, "price": 150, "currency": "USD" },
+      { "sku": "FUC-BLK-10", "color": "Black", "size": "10", "available": true, "price": 150, "currency": "USD" }
+    ],
+    "price": 150,
+    "currency": "USD",
+    "in_stock": true,
+    "rating": 4.8,
+    "review_count": 892
+  }
+]

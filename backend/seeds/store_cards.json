@@ -1,0 +1,30 @@
+[
+  {
+    "shop_id": "run-shop",
+    "store_name": "Trail & Tread",
+    "shop_domain": "run.local",
+    "brand_voice": { "personality": "cheerleader coach", "tone": "warm", "formality": "conversational", "expertise_level": "intermediate" },
+    "policies": { "returns_days": 30, "return_fee": 0, "shipping_threshold": 50 },
+    "merchandising": { "preferred_brands": ["Stride", "Nimbus", "Fleet"] },
+    "categories": ["Footwear > Running Shoes"],
+    "faqs": [
+      { "question": "Can I return worn shoes?", "answer": "Lightly used within 30 days is okay—keep the box.", "category": "returns" }
+    ],
+    "version": "v1",
+    "ttl_days": 14
+  },
+  {
+    "shop_id": "snow-shop",
+    "store_name": "Snowline Boards",
+    "shop_domain": "snow.local",
+    "brand_voice": { "personality": "friendly expert", "tone": "neutral", "formality": "friendly", "expertise_level": "intermediate" },
+    "policies": { "returns_days": 30, "return_fee": 0, "shipping_threshold": 100 },
+    "merchandising": { "preferred_brands": ["Snowline", "PowWorks"] },
+    "categories": ["Sports > Snowboards"],
+    "faqs": [
+      { "question": "Do boards come waxed?", "answer": "Factory‑tuned—and we offer a free first hot wax with pickup.", "category": "general" }
+    ],
+    "version": "v1",
+    "ttl_days": 14
+  }
+]

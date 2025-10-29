@@ -1,0 +1,4 @@
+[
+  { "shop_id": "run-shop", "name": "Trail & Tread", "domain": "run.local" },
+  { "shop_id": "snow-shop", "name": "Snowline Boards", "domain": "snow.local" }
+]

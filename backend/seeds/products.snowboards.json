@@ -1,0 +1,62 @@
+[
+  {
+    "id": "snow-152-nova",
+    "shop_id": "snow-shop",
+    "title": "Snowline Nova 152",
+    "vendor": "Snowline",
+    "brand": "Snowline",
+    "category_path": ["Sports","Snowboards"],
+    "description": "Beginner‑friendly, catch‑free ride.",
+    "attributes": { "length_cm": 152, "flex": 3, "profile": "rocker-flat-rocker", "width": "regular", "terrain": "all-mountain" },
+    "variants": [{ "sku":"SLN-152", "available": true, "price": 389, "currency":"USD" }],
+    "price": 389, "currency":"USD", "in_stock": true, "rating":4.6, "review_count": 203
+  },
+  {
+    "id": "snow-155-pow",
+    "shop_id": "snow-shop",
+    "title": "PowWorks Surfer 155",
+    "vendor": "PowWorks",
+    "brand": "PowWorks",
+    "category_path": ["Sports","Snowboards"],
+    "description": "Directional board for pow days.",
+    "attributes": { "length_cm": 155, "flex": 6, "profile": "rocker-camber-rocker", "width": "wide", "terrain": "powder" },
+    "variants": [{ "sku":"PWS-155", "available": true, "price": 549, "currency":"USD" }],
+    "price": 549, "currency":"USD", "in_stock": true, "rating":4.7, "review_count": 121
+  },
+  {
+    "id": "snow-148-park",
+    "shop_id": "snow-shop",
+    "title": "ParkPop 148 Twin",
+    "vendor": "Snowline",
+    "brand": "Snowline",
+    "category_path": ["Sports","Snowboards"],
+    "description": "Soft‑flex twin for park progression.",
+    "attributes": { "length_cm": 148, "flex": 4, "profile": "flat", "width": "regular", "terrain": "park" },
+    "variants": [{ "sku":"SL-PP148", "available": false, "price": 329, "currency":"USD" }],
+    "price": 329, "currency":"USD", "in_stock": false, "rating":4.3, "review_count": 76
+  },
+  {
+    "id": "snow-158-carver",
+    "shop_id": "snow-shop",
+    "title": "Snowline Carver 158",
+    "vendor": "Snowline",
+    "brand": "Snowline",
+    "category_path": ["Sports","Snowboards"],
+    "description": "Stiff camber board for aggressive carving.",
+    "attributes": { "length_cm": 158, "flex": 7, "profile": "camber", "width": "regular", "terrain": "all-mountain" },
+    "variants": [{ "sku":"SLC-158", "available": true, "price": 479, "currency":"USD" }],
+    "price": 479, "currency":"USD", "in_stock": true, "rating":4.5, "review_count": 156
+  },
+  {
+    "id": "snow-150-freestyle",
+    "shop_id": "snow-shop",
+    "title": "PowWorks Jib Master 150",
+    "vendor": "PowWorks",
+    "brand": "PowWorks",
+    "category_path": ["Sports","Snowboards"],
+    "description": "Playful twin for park and street.",
+    "attributes": { "length_cm": 150, "flex": 4, "profile": "flat-rocker", "width": "regular", "terrain": "park" },
+    "variants": [{ "sku":"PWJ-150", "available": true, "price": 399, "currency":"USD" }],
+    "price": 399, "currency":"USD", "in_stock": true, "rating":4.4, "review_count": 98
+  }
+]

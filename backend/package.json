@@ -12,7 +12,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:golden": "jest tests/golden",
-    "test:conversations": "jest --config jest.conversations.config.js"
+    "test:conversations": "jest --config jest.conversations.config.js",
+    "seed": "tsx seeds/seed.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
