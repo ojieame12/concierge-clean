@@ -16,7 +16,7 @@ process.env.CLIENT_API_KEYS = process.env.CLIENT_API_KEYS || 'test-client-key';
 process.env.CORS_ORIGINS = process.env.CORS_ORIGINS || 'http://localhost:3300';
 
 // Test timeout
-jest.setTimeout(30000); // 30 seconds for LLM calls
+jest.setTimeout(60000); // 60 seconds for conversation tests with LLM-as-Judge
 
 export const testConfig = {
   skipLLMTests: process.env.SKIP_LLM_TESTS === 'true',
