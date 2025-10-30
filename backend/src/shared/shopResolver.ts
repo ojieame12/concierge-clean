@@ -157,7 +157,7 @@ export async function validateShopExists(
   const { data, error } = await supabase
     .from('shops')
     .select('id')
-    .eq('domain', normalized)
+    .eq('shop_domain', normalized)
     .single();
 
   return !error && !!data;

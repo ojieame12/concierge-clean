@@ -7,7 +7,7 @@
 
 import { describe, it, expect } from '@jest/globals';
 import { mockRunningShoes } from '../fixtures/products.fixture';
-import { rerank } from '../../src/core/ranking/reranker';
+import { rerankProducts as rerank } from '../../src/core/ranking/reranker';
 
 describe('Golden Test: Running Shoes Around $150', () => {
   it('should prioritize shoes closest to $150', () => {

@@ -251,7 +251,8 @@ export function pickMode(
   sessionMetadata: SessionMetadata,
   userMessage?: string
 ): TurnMode {
-  // Gate 1: Non-commerce topics always go to chat
+  // Gate 1: Non-commerce topics always go to chat (info mode)
+  // product_info allows Gemini to answer knowledge questions naturally
   if (topic === 'rapport' || topic === 'store_info' || topic === 'policy_info' || topic === 'product_info') {
     return 'chat';
   }

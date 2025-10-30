@@ -8,7 +8,7 @@
 import { describe, it, expect } from '@jest/globals';
 import { mockProducts } from '../fixtures/products.fixture';
 import { mockStoreCard } from '../fixtures/store-card.fixture';
-import { rerank } from '../../src/core/ranking/reranker';
+import { rerankProducts as rerank } from '../../src/core/ranking/reranker';
 import { repairAndValidateChatTurn } from '../../src/core/conversation/schemas/response-schemas';
 
 describe('Golden Test: Beginner Snowboard Under $400', () => {
