@@ -1,0 +1,28 @@
+{
+  "name": "@insite/widget",
+  "version": "1.0.0",
+  "description": "Insite plug-and-play theme extraction widget",
+  "main": "dist/insite-widget.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "insite",
+    "widget",
+    "theme",
+    "extraction",
+    "css"
+  ],
+  "author": "Insite",
+  "license": "PROPRIETARY",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.9.6",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  }
+}
