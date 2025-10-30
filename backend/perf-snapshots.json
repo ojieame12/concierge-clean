@@ -1,0 +1,10 @@
+{
+  "date": "2025-10-30T07:13:29.311Z",
+  "commit": "local",
+  "scenarios": {},
+  "summary": {
+    "avgLatencyP95": 0,
+    "avgTokensPerTurn": 0,
+    "totalCost": 0
+  }
+}

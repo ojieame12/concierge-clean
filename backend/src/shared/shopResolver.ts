@@ -79,8 +79,8 @@ export async function resolveShop(
   // Query database for matching shop
   const { data: shops, error } = await supabase
     .from('shops')
-    .select('id, domain, store_card')
-    .in('domain', candidates);
+    .select('id, shop_domain, store_card')
+    .in('shop_domain', candidates);
 
   if (error) {
     throw new Error(`Shop resolution database error: ${error.message}`);
@@ -90,10 +90,10 @@ export async function resolveShop(
     // Fetch available shops for helpful error message
     const { data: availableShops } = await supabase
       .from('shops')
-      .select('domain')
+      .select('shop_domain')
       .limit(10);
 
-    const availableDomains = availableShops?.map((s) => s.domain) || [];
+    const availableDomains = availableShops?.map((s) => s.shop_domain) || [];
 
     throw new Error(
       `Shop not found. Tried: ${candidates.join(', ')}. ` +
@@ -108,7 +108,7 @@ export async function resolveShop(
   if (shops.length > 1) {
     // Prefer exact match
     const exactMatch = shops.find((s) =>
-      candidates.includes(normalizeDomain(s.domain))
+      candidates.includes(normalizeDomain(s.shop_domain))
     );
     if (exactMatch) {
       selectedShop = exactMatch;
@@ -117,7 +117,7 @@ export async function resolveShop(
 
   return {
     shop_id: selectedShop.id,
-    domain: selectedShop.domain,
+    domain: selectedShop.shop_domain,
     storeCard: selectedShop.store_card,
   };
 }
