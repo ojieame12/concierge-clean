@@ -12,7 +12,7 @@ export const embeddingModel = genAI.getGenerativeModel({
   model: 'text-embedding-004',
 });
 
-// Chat model - Gemini 2.0 Flash ($0.10/1M tokens)
+// Chat model - Gemini 2.0 Flash
 export const chatModel = genAI.getGenerativeModel({
   model: 'gemini-2.0-flash-exp',
   generationConfig: {

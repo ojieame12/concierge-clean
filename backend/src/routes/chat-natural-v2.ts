@@ -104,13 +104,49 @@ router.post('/', requireClientKey, async (req, res) => {
 
     // Stream products if any
     if (output.products && output.products.length > 0) {
-      for (const product of output.products) {
+      // Fetch full product details
+      const productIds = output.products.map(p => p.id);
+      const { data: products } = await supabaseAdmin
+        .from('products')
+        .select(`
+          id,
+          title,
+          description,
+          vendor,
+          image_url,
+          product_variants (
+            id,
+            title,
+            price,
+            compare_at_price,
+            available
+          )
+        `)
+        .in('id', productIds);
+
+      if (products && products.length > 0) {
+        const items = products.map((p, idx) => {
+          const variant = p.product_variants?.[0];
+          const whyChips = output.products.find(op => op.id === p.id)?.why || [];
+          
+          return {
+            id: p.id,
+            title: p.title,
+            price: variant?.price || 0,
+            currency: 'USD',
+            image: p.image_url,
+            vendor: p.vendor,
+            why_chips: whyChips,
+            top_pick: idx === 0, // First product is top pick
+          };
+        });
+
         res.write(`data: ${JSON.stringify({
           type: 'segment',
           segment: {
-            type: 'product_card',
-            product_id: product.id,
-            reasons: product.why,
+            type: 'products',
+            items,
+            layout: 'default',
           }
         })}\n\n`);
         await new Promise(resolve => setTimeout(resolve, 50));
@@ -119,15 +155,33 @@ router.post('/', requireClientKey, async (req, res) => {
 
     // Stream clarifier if any
     if (output.clarifier) {
+      // Add clarifier as narrative + options
       res.write(`data: ${JSON.stringify({
         type: 'segment',
         segment: {
-          type: 'clarifier',
-          question: output.clarifier.question,
-          options: output.clarifier.options || [],
+          type: 'ask',
+          text: output.clarifier.question,
         }
       })}\n\n`);
       await new Promise(resolve => setTimeout(resolve, 50));
+
+      if (output.clarifier.options && output.clarifier.options.length > 0) {
+        const items = output.clarifier.options.map((opt, idx) => ({
+          id: `opt_${idx}`,
+          label: opt,
+          value: opt,
+        }));
+
+        res.write(`data: ${JSON.stringify({
+          type: 'segment',
+          segment: {
+            type: 'options',
+            style: 'quick_replies',
+            items,
+          }
+        })}\n\n`);
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
     }
 
     // Done

@@ -75,37 +75,30 @@ export interface ToolImplementations {
 // System Prompt
 // ============================================================================
 
-const SYSTEM_PROMPT = `You are Insite, a warm, smart B2B concierge. You can chat naturally about anything
-(weather, sports, what snowboards are), educate, and—when useful—recommend products.
+const SYSTEM_PROMPT = `You are Insite, a friendly B2B shopping assistant.
 
-Core behaviors:
-- Be brief, friendly, and specific. Use contractions.
-- Off-topic: reply with ONE warm sentence, then (if helpful) pivot back with ONE sentence.
-- Ask at most ONE clarifier when it reduces uncertainty.
-- When you recommend: show 2–3 products, clear "why this" reasons, and a confident final pick.
-- Dead ends: empathize briefly; propose sibling/nearest; tasteful upsell (≤20% over) only if it clearly improves ≥2 drivers; offer "Notify me" or "Adjust filters".
-- Policies: only state what is known from the Store Card.
+When the user wants to see products ("show me", "find", "looking for"), you MUST:
+1. Call the search_products function
+2. Wait for the results
+3. Then recommend 2-3 products with reasons
 
-Tools:
-- You may call tools if—and only if—they meaningfully help the user now.
-- Don't narrate tool usage. Just use results.
+For other questions ("what are snowboards?", "how's the weather?"):
+- Just answer naturally in 1-2 sentences
+- Be warm and conversational
 
-Output schema:
-Return a single JSON object matching:
+Your final response must be valid JSON:
 {
-  "mode": "chat" | "recommend",
-  "message": "string",            // your natural reply
-  "clarifier": {"question":"string", "options":["A","B"]} | null,
-  "products": [
-    {"id":"string","why":["reason1","reason2"]} // ≤3
-  ],
-  "actions": ["notify_me","adjust_filters","compare"] | []
+  "mode": "chat" or "recommend",
+  "message": "your response text",
+  "products": [{"id":"...", "why":["reason1","reason2"]}],
+  "clarifier": {"question":"...", "options":[...]} or null,
+  "actions": []
 }
 
-Constraints:
-- Never output more than 3 products.
-- Avoid boilerplate ("As an AI…"). Max 1 exclamation mark.
-- If no products are shown, explain why in one short sentence or ask a single clarifier.`;
+Rules:
+- Max 3 products
+- Be brief (1-2 sentences)
+- No boilerplate`;
 
 // ============================================================================
 // Orchestrator
@@ -192,6 +185,23 @@ export async function runTurn(
     },
   ];
 
+  // Check if user wants to see products (manual trigger since Gemini function calling is unreliable)
+  const wantsProducts = /\b(show|find|looking for|recommend|see|want|need|get me)\b.*\b(snowboard|product|item)/i.test(userMessage);
+  
+  if (wantsProducts) {
+    console.log('[Orchestrator] User wants products, triggering manual search...');
+    const searchResult = await tools.searchProducts({
+      query: userMessage,
+      limit: 6,
+    });
+    
+    // Add search results to context
+    messages.push({
+      role: 'user',
+      content: `[SEARCH RESULTS]: ${JSON.stringify(searchResult)}`,
+    } as any);
+  }
+
   // Orchestration loop
   while (toolCalls <= MAX_TOOL_CALLS) {
     try {
@@ -214,12 +224,14 @@ export async function runTurn(
       
       // Check if Gemini wants to call a tool
       const functionCall = result.functionCalls()?.[0];
+      console.log('[Orchestrator] Function call detected:', functionCall ? functionCall.name : 'none');
       
       if (functionCall && toolCalls < MAX_TOOL_CALLS) {
         toolCalls++;
         const { name, args } = functionCall;
         
         // Execute the tool
+        console.log('[Orchestrator] Executing tool:', name, 'with args:', JSON.stringify(args));
         let toolResult: any;
         switch (name) {
           case 'search_products':
@@ -252,6 +264,7 @@ export async function runTurn(
       }
 
       // Final response from Gemini
+      console.log('[Orchestrator] Final response (no more tool calls)');
       const text = result.text()?.trim();
       if (!text) {
         throw new Error('Empty response from Gemini');
