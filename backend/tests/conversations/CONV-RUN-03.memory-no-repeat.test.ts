@@ -193,7 +193,8 @@ describe('CONV-RUN-03: Memory & Non-Repetition', () => {
 
     // Judge the guidance quality
     const score = await judgeGuidance(
-      fullConversation.map((m: any) => m.content).join('\n\n')
+      fullConversation.map((m: any) => m.content).join('\n\n'),
+      'Find running shoes for marathon training'
     );
 
     console.log('Guidance Score:', score.score);
@@ -238,7 +239,7 @@ describe('CONV-RUN-03: Memory & Non-Repetition', () => {
     const response2 = await send(session4, "For road running");
     const question2 = response2.clarifiers[0] || '';
 
-    const response3 = await send(session3, "I'm a beginner");
+    const response3 = await send(session4, "I'm a beginner");
     const question3 = response3.clarifiers[0] || '';
 
     console.log('Q1:', question1);

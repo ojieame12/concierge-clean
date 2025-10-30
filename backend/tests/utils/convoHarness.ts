@@ -306,3 +306,12 @@ export function countClarifiers(responses: ConversationResponse[]): number {
 export function getConversationLength(session: ConversationSession): number {
   return session.messages.filter((m) => m.role === 'user').length;
 }
+
+/**
+ * End a conversation session (cleanup)
+ */
+export async function endSession(session: ConversationSession): Promise<void> {
+  // Currently no cleanup needed, but this provides a hook for future needs
+  // (e.g., closing connections, saving logs, etc.)
+  console.log(`Session ${session.id} ended with ${session.messages.length} messages`);
+}
