@@ -293,7 +293,7 @@ export function useTimelineConversation({
       }
 
       try {
-        const response = await fetch(`${apiUrl}/api/chat`, {
+        const response = await fetch(`${apiUrl}/api/chat-natural-v2`, {
           method: 'POST',
           headers: withClientHeaders({
             'Content-Type': 'application/json',
