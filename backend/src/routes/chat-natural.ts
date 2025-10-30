@@ -18,6 +18,7 @@ import { getOrCreateSession, updateSessionMetadata } from '../core/session/sessi
 import { runNaturalPipeline } from '../core/conversation/pipeline-natural';
 import type { ConversationMessage } from '../types/conversation';
 import { config } from '../config';
+import { resolveShop } from '../shared/shopResolver';
 
 const router = express.Router();
 
@@ -85,14 +86,32 @@ router.post('/', async (req, res) => {
 
     const messages: ConversationMessage[] = incomingMessages;
 
-    const { data: shop, error: shopError } = await supabaseAdmin
-      .from('shops')
-      .select('id, shop_domain, brand_profile')
-      .eq('shop_domain', shopDomain)
-      .single();
+    // Resolve shop using centralized resolver
+    let shop;
+    try {
+      const resolvedShop = await resolveShop(
+        { shop_domain: shopDomain },
+        supabaseAdmin
+      );
 
-    if (shopError || !shop) {
-      return res.status(404).json({ error: 'Shop not found' });
+      // Fetch brand profile
+      const { data: shopData, error: shopError } = await supabaseAdmin
+        .from('shops')
+        .select('id, shop_domain, brand_profile')
+        .eq('id', resolvedShop.shop_id)
+        .single();
+
+      if (shopError || !shopData) {
+        return res.status(404).json({ error: 'Shop not found' });
+      }
+
+      shop = shopData;
+    } catch (error: any) {
+      console.error('[Natural Chat] Shop resolution failed:', error.message);
+      return res.status(404).json({ 
+        error: 'Shop not found',
+        details: error.message 
+      });
     }
 
     const lastMessage = messages[messages.length - 1];

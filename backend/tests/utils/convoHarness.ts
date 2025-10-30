@@ -49,6 +49,45 @@ const API_URL = process.env.CHAT_API_URL || 'http://localhost:4000/api/chat-natu
 const CLIENT_KEY = process.env.CLIENT_KEY || process.env.CLIENT_API_KEYS?.split(',')[0] || 'dev-client-key-123';
 
 /**
+ * Validate that a shop exists before running tests
+ * Call this in beforeAll() to fail fast with clear error messages
+ */
+export async function validateShopExists(shopDomain: string): Promise<void> {
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-concierge-client-key': CLIENT_KEY,
+      },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: 'test' }],
+        shopDomain,
+        sessionId: `validation-${Date.now()}`,
+      }),
+    });
+
+    if (response.status === 404) {
+      const error = await response.json();
+      throw new Error(
+        `Shop validation failed for "${shopDomain}". ` +
+        `${error.details || error.error}. ` +
+        `Make sure the shop is seeded in the database.`
+      );
+    }
+
+    // Any other error is fine - we just want to check shop exists
+    console.log(`✅ Shop "${shopDomain}" validated successfully`);
+  } catch (error: any) {
+    if (error.message.includes('Shop validation failed')) {
+      throw error;
+    }
+    // Network errors or other issues - log but don't fail
+    console.warn(`⚠️  Shop validation warning: ${error.message}`);
+  }
+}
+
+/**
  * Start a new conversation session
  */
 export async function startSession(opts: {
