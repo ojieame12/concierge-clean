@@ -1,0 +1,106 @@
+/**
+ * Card Skins - 3 variants for different merchant aesthetics
+ * 
+ * All variants use the same DOM structure; only CSS variables change.
+ * Merchants can choose: base (default), minimal (outline), merchant (custom).
+ */
+
+/* ===== Base Skin (Default) ===== */
+
+[data-skin="base"] .card {
+  /* Uses global --card-radius and --card-shadow */
+  border: none;
+}
+
+/* ===== Minimal Skin (Outline Style) ===== */
+
+[data-skin="minimal"] .card {
+  border: 1px solid #e5e7eb;
+  box-shadow: none !important;
+}
+
+[data-skin="minimal"] .card:hover {
+  border-color: #d1d5db;
+  box-shadow: none !important;
+}
+
+/* ===== Merchant Skin (Custom Tokens) ===== */
+
+[data-skin="merchant"] .card {
+  /* Merchant may set these tokens via Theme JSON */
+  border-radius: var(--merchant-card-radius, var(--card-radius, 12px));
+  box-shadow: var(--merchant-card-shadow, var(--card-shadow, 0 1px 2px 0 rgb(0 0 0 / 0.05)));
+  border: var(--merchant-card-border, none);
+}
+
+[data-skin="merchant"] .card:hover {
+  box-shadow: var(--merchant-card-shadow-hover, var(--card-shadow-hover, 0 4px 6px -1px rgb(0 0 0 / 0.1)));
+}
+
+/* ===== Card Content Variants ===== */
+
+/* Compact content for 1:1 aspect ratio */
+[data-skin] .card[data-aspect="1:1"] .content {
+  padding: 12px;
+}
+
+[data-skin] .card[data-aspect="1:1"] .title {
+  font-size: 16px;
+}
+
+[data-skin] .card[data-aspect="1:1"] .price {
+  font-size: 18px;
+}
+
+/* Expanded content for 16:9 aspect ratio */
+[data-skin] .card[data-aspect="16:9"] .content {
+  padding: 20px;
+}
+
+[data-skin] .card[data-aspect="16:9"] .title {
+  font-size: 20px;
+}
+
+[data-skin] .card[data-aspect="16:9"] .price {
+  font-size: 22px;
+}
+
+/* ===== Accessibility ===== */
+
+/* Ensure focus states are always visible */
+[data-skin] .card:focus-visible {
+  outline: 3px solid var(--cta-focus, #93C5FD);
+  outline-offset: 2px;
+}
+
+/* Ensure sufficient contrast for text */
+[data-skin] .card .title,
+[data-skin] .card .price {
+  color: #111827; /* Always dark text on light card */
+}
+
+[data-skin] .card .description {
+  color: #6b7280; /* Always medium gray for descriptions */
+}
+
+/* ===== Print Styles ===== */
+
+@media print {
+  [data-skin] .card {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb;
+    page-break-inside: avoid;
+  }
+}
+
+/* ===== Reduced Motion ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin] .card {
+    transition: none !important;
+  }
+  
+  [data-skin] .card:hover {
+    transform: none !important;
+  }
+}

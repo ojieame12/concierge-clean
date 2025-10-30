@@ -204,3 +204,7 @@ export interface TopicClassification {
   confidence: number;
   reasoning?: string;
 }
+
+// ===== Theme System =====
+
+export * from './themeSchema';
