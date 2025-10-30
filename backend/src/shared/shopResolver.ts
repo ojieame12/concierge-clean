@@ -79,7 +79,7 @@ export async function resolveShop(
   // Query database for matching shop
   const { data: shops, error } = await supabase
     .from('shops')
-    .select('id, shop_domain, store_card')
+    .select('id, shop_domain')
     .in('shop_domain', candidates);
 
   if (error) {
@@ -115,10 +115,21 @@ export async function resolveShop(
     }
   }
 
+  // Fetch store card separately if needed
+  let storeCard = undefined;
+  if (selectedShop.id) {
+    const { data: storeCardData } = await supabase
+      .from('store_cards')
+      .select('*')
+      .eq('shop_id', selectedShop.id)
+      .single();
+    storeCard = storeCardData;
+  }
+
   return {
     shop_id: selectedShop.id,
     domain: selectedShop.shop_domain,
-    storeCard: selectedShop.store_card,
+    storeCard,
   };
 }
 
