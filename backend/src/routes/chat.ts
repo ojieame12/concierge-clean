@@ -104,15 +104,15 @@ router.post('/', async (req, res) => {
 
     const pipelineResult = await runConversationPipeline(
       {
-        supabaseAdmin,
-        generateEmbedding,
-      },
-      {
         shopId: shop.id,
         sessionId: sessionKey,
         messages,
         sessionMetadata,
         brandProfile: shop.brand_profile,
+      },
+      {
+        supabaseAdmin,
+        generateEmbedding,
       }
     );
 
