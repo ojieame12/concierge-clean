@@ -30,6 +30,11 @@ const OutputSchema = z.object({
     why: z.array(z.string()),
   })).max(3).default([]),
   actions: z.array(z.enum(['notify_me', 'adjust_filters', 'compare'])).default([]),
+  meta: z.object({
+    tools_used: z.array(z.string()).default([]),
+    store_card_used: z.boolean().default(false),
+    reason_for_tools: z.string().optional(),
+  }).optional(),
 });
 
 export type OrchestratorOutput = z.infer<typeof OutputSchema>;
@@ -188,12 +193,17 @@ export async function runTurn(
   // Check if user wants to see products (manual trigger since Gemini function calling is unreliable)
   const wantsProducts = /\b(show|find|looking for|recommend|see|want|need|get me)\b.*\b(snowboard|product|item)/i.test(userMessage);
   
+  // Track tools used for telemetry
+  const toolsUsed: string[] = [];
+  
   if (wantsProducts) {
     console.log('[Orchestrator] User wants products, triggering manual search...');
     const searchResult = await tools.searchProducts({
       query: userMessage,
       limit: 6,
     });
+    
+    toolsUsed.push('product.search');
     
     // Add search results to context
     messages.push({
@@ -280,11 +290,22 @@ export async function runTurn(
           clarifier: null,
           products: [],
           actions: [],
+          meta: {
+            tools_used: toolsUsed,
+            store_card_used: false,
+          },
         };
       }
 
       const json = JSON.parse(jsonMatch[0]);
       const output = OutputSchema.parse(json);
+      
+      // Add telemetry
+      output.meta = {
+        tools_used: toolsUsed,
+        store_card_used: output.meta?.store_card_used || false,
+        reason_for_tools: output.meta?.reason_for_tools,
+      };
       
       return output;
 
@@ -298,6 +319,10 @@ export async function runTurn(
         clarifier: null,
         products: [],
         actions: [],
+        meta: {
+          tools_used: toolsUsed,
+          store_card_used: false,
+        },
       };
     }
   }
