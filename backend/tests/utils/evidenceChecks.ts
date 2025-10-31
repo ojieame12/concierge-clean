@@ -165,10 +165,10 @@ export function trackAnsweredSlots(
   
   // Map common patterns to slots
   const patterns: Array<{ slot: string; regex: RegExp }> = [
-    { slot: 'boot_size', regex: /\\b(\\d+(\\.\\d+)?)(\\s*us)?\\b/i },
-    { slot: 'budget', regex: /\\$?(\\d+)(-|to|–)(\\d+)/i },
-    { slot: 'terrain', regex: /\\b(groomer|powder|park|all-mountain|backcountry)\\b/i },
-    { slot: 'experience', regex: /\\b(beginner|intermediate|advanced|expert|first.time)\\b/i },
+    { slot: 'boot_size', regex: /\b(\d+(\.\d+)?)(\s*us)?\b/i },
+    { slot: 'budget', regex: /\$?(\d+)(-|to|–)(\d+)/i },
+    { slot: 'terrain', regex: /\b(groomer|powder|park|all-mountain|backcountry)\b/i },
+    { slot: 'experience', regex: /\b(beginner|intermediate|advanced|expert|first.time)\b/i },
   ];
   
   for (const { question, answer, turn } of clarifiers) {
