@@ -32,7 +32,7 @@ import {
 } from '../utils/evidenceChecks';
 import type { ConversationSession, ConversationResponse } from '../utils/convoHarness';
 
-const SHOP = 'insite-intellgience.myshopify.com';
+const SHOP = 'mountain-modern-test.myshopify.com';
 
 describe('GAUNTLET COMPLETE • 4-Layer Testing', () => {
   let session: ConversationSession;
