@@ -332,6 +332,84 @@ function parseJudgeResponse(rawResponse: string): { score: number; reasons: stri
 }
 
 /**
+ * Judge context use and intelligence
+ * 
+ * Evaluates whether the reply uses context correctly, avoids contradictions,
+ * and provides helpful, non-obvious reasoning.
+ */
+export async function judgeContextUse(
+  history: Array<{ role: string; content: string }>,
+  responseText: string,
+  context: { storeCard?: any; products?: any[]; constraints?: any }
+): Promise<JudgeScore> {
+  try {
+    const historyText = history
+      .map((m) => `${m.role}: ${m.content}`)
+      .join('\n');
+
+    const contextInfo = [
+      context.storeCard ? 'Store Card: Available' : 'Store Card: None',
+      `Products: ${context.products?.length || 0} available`,
+      context.constraints ? `Constraints: ${JSON.stringify(context.constraints)}` : 'Constraints: None',
+    ].join('\n');
+
+    const prompt = `Rate how well the assistant uses context and provides intelligent reasoning (1-5).
+
+**Conversation History:**
+${historyText}
+
+**Assistant Response:**
+${responseText}
+
+**Available Context:**
+${contextInfo}
+
+**Scoring Guide:**
+- **5**: Perfect context use, insightful reasoning, no contradictions, uses specific product/store details
+- **4**: Good context use, helpful reasoning, minor issues
+- **3**: Adequate context use, generic reasoning, no major errors
+- **2**: Poor context use, contradictions, or ignores available context
+- **1**: Completely ignores context, contradicts previous turns, generic platitudes
+
+**Evaluate:**
+1. Does the response use available context (products, store policies, user constraints)?
+2. Does it avoid contradicting previous turns?
+3. Does it provide specific, non-obvious reasoning (not generic advice)?
+4. Does it reference actual product attributes or store policies when appropriate?
+
+Return JSON only:
+{
+  "score": 1-5,
+  "reasons": ["reason 1", "reason 2", ...]
+}`;
+
+    const response = await chatModel.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 512,
+      },
+    });
+
+    const rawResponse = response.response.text();
+    const parsed = parseJudgeResponse(rawResponse);
+
+    return {
+      score: parsed.score,
+      reasons: parsed.reasons,
+      rawResponse,
+    };
+  } catch (error) {
+    console.error('Judge context use failed:', error);
+    return {
+      score: 3,
+      reasons: ['Error during judging - defaulting to neutral score'],
+      rawResponse: String(error),
+    };
+  }
+}
+
+/**
  * Run all judges on a conversation turn
  */
 export async function judgeConversationTurn(
