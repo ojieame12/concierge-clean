@@ -398,7 +398,9 @@ function capExclamations(text: string, max: number): string {
  * Apply all style guards to orchestrator output
  */
 export function applyStyleGuards<T extends {
-  message: string;
+  mainLead?: string;
+  actionDetail?: string;
+  message?: string;  // Legacy support
   products?: Array<{ id: string; why: string[] }>;
   clarifier?: { question: string; options?: string[] } | null;
 }>(
@@ -419,26 +421,66 @@ export function applyStyleGuards<T extends {
   try {
     let result = { ...response };
     
-    // Guard 1: Length Governor
-    if (allEnabled || enabled.lengthGovernor !== false) {
-      telemetry.guardsApplied.push('lengthGovernor');
-      result.message = applyLengthGovernor(result.message, config.maxSentences, telemetry);
+    // Process structured format (mainLead + actionDetail)
+    if (result.mainLead !== undefined) {
+      // Guard 1: Length Governor - mainLead (1-2 sentences)
+      if (allEnabled || enabled.lengthGovernor !== false) {
+        telemetry.guardsApplied.push('lengthGovernor:mainLead');
+        result.mainLead = applyLengthGovernor(result.mainLead, 2, telemetry);
+      }
+      
+      // Guard 2: Opener Diversity - mainLead only
+      if (allEnabled || enabled.openerDiversity !== false) {
+        telemetry.guardsApplied.push('openerDiversity:mainLead');
+        result.mainLead = applyOpenerDiversity(result.mainLead, config.openerHistory, telemetry);
+      }
+      
+      // Guard 3: Contraction Normalizer - mainLead
+      if (allEnabled || enabled.contractionNormalizer !== false) {
+        telemetry.guardsApplied.push('contractionNormalizer:mainLead');
+        result.mainLead = applyContractionNormalizer(result.mainLead, telemetry);
+      }
+      
+      // Cap exclamations - mainLead
+      result.mainLead = capExclamations(result.mainLead, 1);
     }
     
-    // Guard 2: Opener Diversity
-    if (allEnabled || enabled.openerDiversity !== false) {
-      telemetry.guardsApplied.push('openerDiversity');
-      result.message = applyOpenerDiversity(result.message, config.openerHistory, telemetry);
+    if (result.actionDetail !== undefined) {
+      // Guard 1: Length Governor - actionDetail (2-3 sentences)
+      if (allEnabled || enabled.lengthGovernor !== false) {
+        telemetry.guardsApplied.push('lengthGovernor:actionDetail');
+        result.actionDetail = applyLengthGovernor(result.actionDetail, 3, telemetry);
+      }
+      
+      // Guard 3: Contraction Normalizer - actionDetail
+      if (allEnabled || enabled.contractionNormalizer !== false) {
+        telemetry.guardsApplied.push('contractionNormalizer:actionDetail');
+        result.actionDetail = applyContractionNormalizer(result.actionDetail, telemetry);
+      }
+      
+      // Cap exclamations - actionDetail
+      result.actionDetail = capExclamations(result.actionDetail, 1);
     }
     
-    // Guard 3: Contraction Normalizer
-    if (allEnabled || enabled.contractionNormalizer !== false) {
-      telemetry.guardsApplied.push('contractionNormalizer');
-      result.message = applyContractionNormalizer(result.message, telemetry);
+    // Legacy support: process message field if present
+    if (result.message !== undefined) {
+      if (allEnabled || enabled.lengthGovernor !== false) {
+        telemetry.guardsApplied.push('lengthGovernor');
+        result.message = applyLengthGovernor(result.message, config.maxSentences, telemetry);
+      }
+      
+      if (allEnabled || enabled.openerDiversity !== false) {
+        telemetry.guardsApplied.push('openerDiversity');
+        result.message = applyOpenerDiversity(result.message, config.openerHistory, telemetry);
+      }
+      
+      if (allEnabled || enabled.contractionNormalizer !== false) {
+        telemetry.guardsApplied.push('contractionNormalizer');
+        result.message = applyContractionNormalizer(result.message, telemetry);
+      }
+      
+      result.message = capExclamations(result.message, 1);
     }
-    
-    // Cap exclamations
-    result.message = capExclamations(result.message, 1);
     
     // Guard 4: Clarifier Memory
     if (allEnabled || enabled.clarifierMemory !== false) {

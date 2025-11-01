@@ -21,7 +21,8 @@ import { applyStyleGuards, decideSentenceCaps } from './style-guards';
 
 const OutputSchema = z.object({
   mode: z.enum(['chat', 'recommend']),
-  message: z.string(),
+  mainLead: z.string().describe('1-2 sentences: conversational response'),
+  actionDetail: z.string().describe('2-3 sentences: guidance/summary'),
   clarifier: z.object({
     question: z.string(),
     options: z.array(z.string()).optional(),
@@ -30,7 +31,11 @@ const OutputSchema = z.object({
     id: z.string(),
     why: z.array(z.string()),
   })).max(3).default([]),
-  actions: z.array(z.enum(['notify_me', 'adjust_filters', 'compare'])).default([]),
+  cta: z.object({
+    retry: z.boolean().optional().describe('Show retry button for recommendations'),
+    askMore: z.boolean().optional().describe('Show ask more button'),
+    addToCart: z.boolean().optional().describe('Show add to cart button'),
+  }).optional(),
   meta: z.object({
     tools_used: z.array(z.string()).default([]),
     store_card_used: z.boolean().default(false),
@@ -114,19 +119,25 @@ NEVER start consecutive responses the same way.
 
 ## Response Format
 
-Your final response must be valid JSON:
+Your final response must be valid JSON with STRUCTURED fields:
 {
   "mode": "chat" or "recommend",
-  "message": "your response text",
+  "mainLead": "1-2 sentence conversational response in concierge tone",
+  "actionDetail": "2-3 sentence guidance/summary with context",
   "products": [{"id":"...", "why":["reason1","reason2"]}],
   "clarifier": {"question":"...", "options":[...]} or null,
-  "actions": []
+  "cta": {"retry": true} // for recommendations
 }
 
-Rules:
-- Max 3 products
-- Be brief (1-2 sentences)
-- No boilerplate`;
+**Structure Rules:**
+- **mainLead**: 1-2 sentences max, warm and conversational
+- **actionDetail**: 2-3 sentences max, guidance/summary/next steps
+- **Greeting**: mainLead (1 sentence greeting), actionDetail (2 sentences capabilities)
+- **Info**: mainLead (2 sentences answer), actionDetail (3 sentences info + store hint)
+- **Recommendation**: mainLead (2 sentences), actionDetail (2 sentences reasoning), products (2-3 max), cta.retry = true
+- Max 3 products total
+- Use contractions naturally
+- Vary openers`;
 
 // ============================================================================
 // Orchestrator
@@ -309,13 +320,13 @@ export async function runTurn(
       // Parse JSON response
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        // Gemini didn't return JSON, wrap it
+        // Gemini didn't return JSON, wrap it in structured format
         return {
           mode: 'chat',
-          message: text,
+          mainLead: text.split('.')[0] + '.',
+          actionDetail: text.split('.').slice(1).join('.').trim() || 'How can I help you today?',
           clarifier: null,
           products: [],
-          actions: [],
           meta: {
             tools_used: toolsUsed,
             store_card_used: false,
@@ -354,10 +365,10 @@ export async function runTurn(
       // Fallback to safe response
       return {
         mode: 'chat',
-        message: "I'm here to help! What are you looking for today?",
+        mainLead: "I'm here to help!",
+        actionDetail: "What are you looking for today? I can help you find products, answer questions, or provide recommendations.",
         clarifier: null,
         products: [],
-        actions: [],
         meta: {
           tools_used: toolsUsed,
           store_card_used: false,
@@ -369,13 +380,13 @@ export async function runTurn(
   // Max tool calls reached, ask clarifier
   return {
     mode: 'chat',
-    message: "Let me narrow this down—what's most important to you?",
+    mainLead: "Let me narrow this down for you.",
+    actionDetail: "What's most important to you? This'll help me find exactly what you need.",
     clarifier: {
       question: "What matters most?",
       options: ['Price', 'Quality', 'Brand'],
     },
     products: [],
-    actions: [],
   };
 }
 
