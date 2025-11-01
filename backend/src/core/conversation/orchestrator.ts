@@ -13,6 +13,7 @@
 import { chatModel } from '../../infra/llm/gemini';
 import type { ConversationMessage } from './types';
 import { z } from 'zod';
+import { applyStyleGuards, decideSentenceCaps } from './style-guards';
 
 // ============================================================================
 // Output Schema
@@ -137,6 +138,9 @@ export interface OrchestratorSession {
   messages: ConversationMessage[];
   storeCard?: any;
   brandProfile?: any;
+  openerHistory?: string[];
+  answeredClarifierFacets?: string[];
+  turnCount?: number;
 }
 
 export async function runTurn(
@@ -320,13 +324,26 @@ export async function runTurn(
       }
 
       const json = JSON.parse(jsonMatch[0]);
-      const output = OutputSchema.parse(json);
+      let output = OutputSchema.parse(json);
+      
+      // Apply style guards
+      const isGreeting = session.messages.length <= 1;
+      const maxSentences = decideSentenceCaps(output.mode, isGreeting);
+      
+      const guarded = applyStyleGuards(output, {
+        maxSentences,
+        openerHistory: session.openerHistory || [],
+        answeredClarifiers: new Set(session.answeredClarifierFacets || []),
+      });
+      
+      output = guarded.data;
       
       // Add telemetry
       output.meta = {
         tools_used: toolsUsed,
         store_card_used: output.meta?.store_card_used || false,
         reason_for_tools: output.meta?.reason_for_tools,
+        guard_telemetry: guarded.telemetry,
       };
       
       return output;
