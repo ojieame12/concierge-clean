@@ -19,16 +19,33 @@ export interface ConversationSession {
 }
 
 export interface ConversationResponse {
-  segments: Segment[];
+  // New structured format
+  mainLead?: string;               // 1-2 sentences: conversational response
+  actionDetail?: string;           // 2-3 sentences: guidance/summary
+  
+  // Legacy segment-based format
+  segments?: Segment[];
   metadata?: Record<string, any>;
   
   // Extracted for easy testing
-  text: string;                    // All narrative text combined
+  text: string;                    // All narrative text combined (or mainLead + actionDetail)
   clarifiers: string[];            // All ask segments
   shortlist: ProductItem[];        // Products shown
   finalPick?: ProductItem;         // If one product is clearly recommended
   options: QuickReplyOption[];     // Quick reply options
-  cta?: string;                    // Call to action if present
+  
+  // Clarifier
+  clarifier?: {
+    question: string;
+    options: string[];
+  } | null;
+  
+  // CTAs
+  cta?: {
+    retry?: boolean;
+    askMore?: boolean;
+    addToCart?: boolean;
+  } | string;                      // string for legacy support
 }
 
 export interface ProductItem {
@@ -45,8 +62,8 @@ export interface QuickReplyOption {
   value?: string;
 }
 
-const API_URL = process.env.CHAT_API_URL || 'http://localhost:4000/api/chat-natural';
-const CLIENT_KEY = process.env.CLIENT_KEY || process.env.CLIENT_API_KEYS?.split(',')[0] || 'dev-client-key-123';
+const API_URL = process.env.CHAT_API_URL || 'http://localhost:4000/api/chat-natural-v2';
+const CLIENT_KEY = process.env.CLIENT_KEY || process.env.CLIENT_API_KEYS?.split(',')[0] || 'dev_client_key';
 
 /**
  * Validate that a shop exists before running tests
@@ -85,6 +102,46 @@ export async function validateShopExists(shopDomain: string): Promise<void> {
     // Network errors or other issues - log but don't fail
     console.warn(`⚠️  Shop validation warning: ${error.message}`);
   }
+}
+
+/**
+ * Parse Server-Sent Events (SSE) streaming response
+ */
+async function parseSSEResponse(response: Response): Promise<any> {
+  const text = await response.text();
+  const lines = text.split('\n');
+  
+  const segments: any[] = [];
+  let doneData: any = null;
+  
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      const jsonStr = line.slice(6); // Remove 'data: ' prefix
+      try {
+        const data = JSON.parse(jsonStr);
+        
+        if (data.type === 'segment') {
+          segments.push(data.segment);
+        } else if (data.type === 'done') {
+          doneData = data;
+        }
+      } catch (e) {
+        // Skip invalid JSON lines
+      }
+    }
+  }
+  
+  // Combine segments and done data
+  return {
+    segments,
+    mainLead: doneData?.mainLead,
+    actionDetail: doneData?.actionDetail,
+    clarifier: doneData?.clarifier,
+    products: doneData?.products,
+    cta: doneData?.cta,
+    metadata: doneData?.metadata,
+    meta: doneData?.metadata,
+  };
 }
 
 /**
@@ -134,7 +191,8 @@ export async function send(
     throw new Error(`API error: ${response.status} - ${error}`);
   }
 
-  const result = await response.json();
+  // Parse SSE streaming response
+  const result = await parseSSEResponse(response);
 
   // Add assistant response to history
   const narrativeText = extractNarrativeText(result.segments);
@@ -163,13 +221,29 @@ function extractNarrativeText(segments: Segment[]): string {
  * Parse API response into structured format for testing
  */
 function parseResponse(result: any): ConversationResponse {
+  // Check if response has new structured format
+  const hasStructuredFormat = result.mainLead !== undefined || result.actionDetail !== undefined;
+  
+  let mainLead: string | undefined;
+  let actionDetail: string | undefined;
+  let text: string;
+  let narratives: string[] = [];
+  
+  if (hasStructuredFormat) {
+    // New structured format
+    mainLead = result.mainLead;
+    actionDetail = result.actionDetail;
+    text = [mainLead, actionDetail].filter(Boolean).join(' ');
+  } else {
+    // Legacy segment-based format
+    const segments: Segment[] = result.segments || [];
+    narratives = segments
+      .filter((s) => s.type === 'narrative')
+      .map((s: any) => s.text);
+    text = narratives.join('\n\n');
+  }
+  
   const segments: Segment[] = result.segments || [];
-
-  // Extract narrative text
-  const narratives = segments
-    .filter((s) => s.type === 'narrative')
-    .map((s: any) => s.text);
-  const text = narratives.join('\n\n');
 
   // Extract clarifying questions
   const clarifiers = segments
@@ -240,15 +314,40 @@ function parseResponse(result: any): ConversationResponse {
     }
   }
 
+  // Extract clarifier from structured format
+  const clarifier = result.clarifier ? {
+    question: result.clarifier.question || '',
+    options: result.clarifier.options || [],
+  } : null;
+  
+  // Extract products from structured format
+  if (result.products && result.products.length > 0) {
+    for (const product of result.products) {
+      shortlist.push({
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        reason: product.reason,
+        why: product.why || [],
+      });
+    }
+  }
+  
+  // Extract CTA from structured format
+  const structuredCta = result.cta;
+  
   return {
+    mainLead,
+    actionDetail,
     segments,
-    metadata: result.metadata,
+    metadata: result.metadata || result.meta,
     text,
     clarifiers,
     shortlist,
     finalPick,
     options,
-    cta,
+    clarifier,
+    cta: structuredCta || cta,
   };
 }
 

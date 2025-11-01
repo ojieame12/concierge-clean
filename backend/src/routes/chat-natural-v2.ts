@@ -41,14 +41,16 @@ router.post('/', requireClientKey, async (req, res) => {
     const { shopDomain, messages: incomingMessages } = parsed.data;
 
     // Get shop
+    console.log('[DEBUG] Looking up shop:', shopDomain);
     const { data: shop, error: shopError } = await supabaseAdmin
       .from('shops')
       .select('id, shop_domain, brand_profile')
       .eq('shop_domain', shopDomain)
       .single();
 
+    console.log('[DEBUG] Shop lookup result:', { shop, shopError });
     if (shopError || !shop) {
-      return res.status(404).json({ error: 'Shop not found' });
+      return res.status(404).json({ error: 'Shop not found', details: shopError?.message });
     }
 
     // Convert messages
@@ -94,11 +96,26 @@ router.post('/', requireClientKey, async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    // Stream message
-    res.write(`data: ${JSON.stringify({ 
-      type: 'segment', 
-      segment: { type: 'narrative', text: output.message }
-    })}\n\n`);
+    // Stream mainLead and actionDetail (or fallback to message)
+    if (output.mainLead && output.actionDetail) {
+      res.write(`data: ${JSON.stringify({ 
+        type: 'segment', 
+        segment: { type: 'narrative', text: output.mainLead }
+      })}\n\n`);
+      
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      res.write(`data: ${JSON.stringify({ 
+        type: 'segment', 
+        segment: { type: 'narrative', text: output.actionDetail }
+      })}\n\n`);
+    } else if (output.message) {
+      // Legacy fallback
+      res.write(`data: ${JSON.stringify({ 
+        type: 'segment', 
+        segment: { type: 'narrative', text: output.message }
+      })}\n\n`);
+    }
 
     await new Promise(resolve => setTimeout(resolve, 50));
 
@@ -184,14 +201,20 @@ router.post('/', requireClientKey, async (req, res) => {
       }
     }
 
-    // Done
+    // Done - include structured format in metadata
     res.write(`data: ${JSON.stringify({
       type: 'done',
+      mainLead: output.mainLead,
+      actionDetail: output.actionDetail,
+      clarifier: output.clarifier,
+      products: output.products,
+      cta: output.cta,
       metadata: {
         mode: output.mode,
         actions: output.actions,
         tone: 'warm',
         layout_hints: { mode: output.mode === 'recommend' ? 'grid' : 'dialogue' },
+        ...output.meta,
       }
     })}\n\n`);
 

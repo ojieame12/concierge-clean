@@ -41,6 +41,8 @@ export type SessionMetadata = {
   factSheetCache?: FactSheetCache | null;
   dialogueSummary?: string | null;
   sentiment?: 'positive' | 'neutral' | 'concerned' | null;
+  openerHistory?: string[];
+  answeredClarifierFacets?: string[];
 };
 
 type MemorySession = {
@@ -64,6 +66,8 @@ const DEFAULT_METADATA: SessionMetadata = {
   factSheetCache: null,
   dialogueSummary: null,
   sentiment: null,
+  openerHistory: [],
+  answeredClarifierFacets: [],
 };
 
 const memorySessions = new Map<string, MemorySession>();

@@ -288,3 +288,105 @@ export function checkProductGroundedness(
     return p.why.every(reason => evidenceExistsIn(record, reason));
   });
 }
+
+/**
+ * Validate mainLead + actionDetail structure
+ */
+export function validateStructuredResponse(response: {
+  mainLead?: string;
+  actionDetail?: string;
+}): boolean {
+  if (!response.mainLead || !response.actionDetail) {
+    console.error('Missing mainLead or actionDetail');
+    return false;
+  }
+  
+  // mainLead should be 1-3 sentences
+  const mainLeadSentences = countSentences(response.mainLead);
+  if (mainLeadSentences < 1 || mainLeadSentences > 3) {
+    console.warn(`mainLead has ${mainLeadSentences} sentences (expected 1-3)`);
+  }
+  
+  // actionDetail should be 1-4 sentences
+  const actionDetailSentences = countSentences(response.actionDetail);
+  if (actionDetailSentences < 1 || actionDetailSentences > 4) {
+    console.warn(`actionDetail has ${actionDetailSentences} sentences (expected 1-4)`);
+  }
+  
+  return true;
+}
+
+/**
+ * Check if clarifier count is within limit
+ */
+export function validateClarifierSequence(
+  history: Array<{
+    clarifier?: { question: string; options: string[] } | null;
+    products?: any[];
+  }>,
+  maxClarifiers: number = 3
+): boolean {
+  let clarifierCount = 0;
+  
+  for (const response of history) {
+    if (response.clarifier) {
+      clarifierCount++;
+    }
+    
+    // Reset count after recommendation
+    if (response.products && response.products.length > 0) {
+      clarifierCount = 0;
+    }
+  }
+  
+  if (clarifierCount > maxClarifiers) {
+    console.error(`Clarifier count (${clarifierCount}) exceeds max (${maxClarifiers})`);
+    return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Check if "Something Else" option is present
+ */
+export function hasSomethingElseOption(response: {
+  clarifier?: { question: string; options: string[] } | null;
+}): boolean {
+  if (!response.clarifier || !response.clarifier.options) {
+    return true;  // No clarifier, so no requirement
+  }
+  
+  const hasSomethingElse = response.clarifier.options.some(opt => 
+    opt.toLowerCase().includes('something else') || 
+    opt.toLowerCase().includes('other') ||
+    opt.toLowerCase().includes('custom')
+  );
+  
+  return hasSomethingElse;
+}
+
+/**
+ * Count clarifiers in a conversation sequence
+ */
+export function countClarifiersInSequence(
+  history: Array<{
+    clarifier?: { question: string; options: string[] } | null;
+    products?: any[];
+  }>
+): number {
+  let count = 0;
+  
+  for (const response of history) {
+    if (response.clarifier) {
+      count++;
+    }
+    
+    // Stop counting after recommendation
+    if (response.products && response.products.length > 0) {
+      break;
+    }
+  }
+  
+  return count;
+}
