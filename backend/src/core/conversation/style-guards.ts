@@ -166,7 +166,7 @@ function splitSentences(text: string): string[] {
   if (!text) return [];
   
   // Protect common abbreviations from being split
-  const protected = text
+  const protectedText = text
     .replace(/\bMt\./g, 'Mt~')
     .replace(/\bDr\./g, 'Dr~')
     .replace(/\bMr\./g, 'Mr~')
@@ -177,7 +177,7 @@ function splitSentences(text: string): string[] {
     .replace(/\bi\.e\./g, 'i~e~');
   
   // Split on sentence boundaries
-  const sentences = protected
+  const sentences = protectedText
     .split(/(?<=[.!?])\s+/)
     .filter(Boolean)
     .map(s => s.replace(/~/g, '.').trim());
